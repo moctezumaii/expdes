@@ -1,0 +1,426 @@
+---
+title: "Assignment 4"
+subtitle: "Simple Linear Models"
+author: "Dr. Alejandro Molina-Moctezuma"
+format: 
+  html:
+    embed-resources: true
+editor: visual
+---
+
+# Linear Models
+
+NOTE: FOR THESE EXAMPLES, WE ARE MEETING ALL OF THE ASSUMPTIONS OF A LINEAR MODEL. WE WILL LEARN HOW TO TEST FOR THEM IN TE NEXT ASSIGNMENT. FOR NOW, I WANT YOU TO FAMILIARIZE WITH RUNNING MODELS AND INTERPRETING THEM.
+
+## One categorical group linear model
+
+So far we have talked about many types of linear models. Now is the time to test them. The first model you will run is a linear model with no covariates (similar to a one-sample t-test):
+
+$$
+\begin{split}y_i & \sim \beta_0 + \epsilon_i \\
+\text{where } \epsilon & \sim normal(0,\sigma)
+\end{split}
+$$
+
+Where $y_i$ is the response variable, $\beta_0$ is the intercept (and mean), and $\epsilon$ is the residual (or observer) error.
+
+Example 1 🐁
+
+The Jackson Laboratory (Bar Harbor, ME) shipped you some lab mice 🐁 from the C57BL/6J strain. You chose this specific strain because they are supposed to have vey low mass variability, and their mean mass at 20 weeks is 20.2 grams, which is important for your experiments. However, you suspect the mice you got might have a different weight, so, you take a random sample of 21 individuals to check.
+
+Step 1: Download the "mousedata.csv" file and load it in an object named mousedata and inspect it
+
+```{r}
+mousedata<-read.csv("mousedata.csv")
+mousedata<-mousedata$x
+mousedata
+
+```
+
+the question is: is the average mass of your mice equal to 20.2 grams?
+
+The relevant hypotheses would be:
+
+-   $$
+    Ho : \mu_1 = 20.2
+    $$
+
+-   $$
+    Ha : \mu_1 \neq 20.2$$
+
+And our model looks like:
+
+$$
+y_i = \beta_0 + \epsilon_i \ \ \ \ \ \text{where} \ \ \ \ \ \epsilon_i \sim \text{N}(0,\sigma)
+$$
+
+where $\beta_0$ represents the estimated $\mu_1$
+
+If you remember from the last lab, we could run a t-test:
+
+```{r}
+
+t.test(mousedata,mu=20.2)
+
+```
+
+But I actually recommend running it as a linear model instead. This is very easy to do:
+
+```{r}
+mdata<-as.data.frame(mousedata)
+#mdata
+model1<-lm(mousedata~1,data=mdata)
+
+summary(model1)
+
+```
+
+```{r}
+model1<-lm(mousedata~1)
+summary(model1)
+```
+
+However, it might be a bit tougher to interpret. Particularly because this model is not testing our null hypothesis. Remember, we are wondering whether the mean mass of our mice is equal to 20.2 grams!
+
+In order to run this model we do the following:
+
+```{r}
+model1alternative<-lm(mousedata-20.2~1)
+summary(model1alternative)
+```
+
+::: callout-caution
+## Q1. 1pt ✏️
+
+Compare the output of the last model you ran with the output you obtained from the t-test. Which one has more information? Are the conclusions the same or different?
+:::
+
+## Categorical: two groups
+
+We will work with the teporingos 🐇 example. But you can rename the examples and imagine they represent any other type of response variables.
+
+In this case, we are exploring two populations and wondering whether they are different in size.
+
+The relevant hypotheses would be:
+
+-   $$ Ho : \mu_1 = \mu_2 $$
+
+-   $$ Ha : \mu_1 \neq \mu_2$$
+
+First, we read the data:
+
+```{r}
+teporingos<-read.csv("teporingos2pops.csv")
+```
+
+Now, let's plot it. We will use `ggplot`. Remember we need to load it:
+
+```{r}
+library(ggplot2)
+```
+
+We used ggplot for a previous assignment. If you are curious about it, this is how ggplot works:
+
+$$\underbrace{ggplot}_{initiate\; plot}(\underbrace{data = df}_{data\;frame},\; \underbrace{aes(x =\; , y = \;)}_{plot\; attributes}) + \underbrace{geom\_line()}_{geometry\:line} + \underbrace{geom\_point()}_{geometry\:point} + \underbrace{theme()}_{customize}$$
+
+In that example we have two geometries. So, in that case we would be plotting lines and points (easy, right?). If you want to see all the available geometries, visit: <https://ggplot2.tidyverse.org/reference#geoms>
+
+Now, let's plot the data. I am providing the code, but in the future, you will be writing the code:
+
+This is a "violin plot" which shows the data distribution. We will see different plots during this class.
+
+```{r}
+ggplot(data = teporingos, aes(x = site, y = mass)) + 
+  geom_boxplot(fill=gray(0.7,0.25),color="black",width=0.1) +
+  geom_violin(fill=gray(0.9,0.1),color="black")+
+ theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))+
+  geom_point(aes(color = site), size = 5, alpha = 0.5)+
+  scale_color_manual(values=c("#57825a","#dd2e46"))
+```
+
+In this case, you could run a t-test:
+
+```{r}
+t.test(mass~site, var.equal=TRUE, data=teporingos)
+```
+
+But we could also run a linear model with the following equation:
+
+$$
+y_i = \beta_0 + \beta_1x_{1,i} + \epsilon_i \ \ \ \ \ \text{where} \ \ \ \ \ \epsilon_i \sim \text{N}(0,\sigma)
+$$
+
+Where $x_1$ (population) is treated as:
+
+| population | Value of $x_1$ |
+|------------|----------------|
+| Texcoco    | 0              |
+| Topilejo   | 1              |
+
+```{r}
+model2<-lm(mass~site, data=teporingos)
+summary(model2)
+```
+
+```{r}
+t.test(mass~site,var.equal=T, data=teporingos)
+```
+
+::: callout-caution
+## Q2. 1pt ✏️
+
+Compare the output of the last model you ran with the output you obtained from the t-test. Which one has more information? Are the conclusions the same or different?
+:::
+
+Let's look at the equation that you just ran, but let's replace the variable names .
+
+$$
+\begin{split}
+Mass_i & \sim \beta_0 + \beta_1(\text{population}) + \epsilon_i \\
+\text{where } \epsilon & \sim normal(0,\sigma)
+\end{split}
+$$
+
+So, for Texcoco, we can obtain the predicted value as:
+
+$$
+\begin{split}
+y_i & \sim \beta_0 + \epsilon_i \\
+\text{where } \epsilon & \sim normal(0,\sigma)
+\end{split}
+$$
+
+While for the Topilejo individuals, the predicted value is obtained using the following:
+
+$$
+\begin{split}
+y_i & \sim \beta_0 + \beta_1+ \epsilon_i \\
+\text{where } \epsilon & \sim normal(0,\sigma)
+\end{split}
+$$
+
+::: {.callout-warning appearance="minimal"}
+## Stop! 🛑
+
+At this time, you should have understood all of the concepts I have presented in this assignment. If you don't understand them, now is the time to raise your hand, shoot me an email, read info online, stop by my office, or set up a meeting with me
+:::
+
+## Categorical analysis with more than two groups
+
+After analyzing the 🐇 teporingos data, you collect some more data, from two other populations. So now, you have a total of four populations!
+
+The relevant hypotheses would be:
+
+-   $$ Ho : \mu_1 = \mu_2 = \mu_3 =\mu_4 $$
+
+-   $$ Ha : \text{At least one different}$$
+
+Read the new file, `teporingosnew.csv`
+
+```{r}
+teporingosnew<-read.csv("teporingosnew.csv")
+head(teporingosnew)
+```
+
+Mixing both data-sets together, is super easy. We simply use:
+
+```{r}
+teporingosall<-rbind(teporingos,teporingosnew)
+```
+
+And now we have a single object with all four groups. At this point, we cannot do a t-test anymore, but we can do a linear model, and an ANOVA.
+
+For the linear model, we have more coefficients this time. Four of them. Let's explore the model equation:
+
+$$ \begin{split} y_i & \sim \beta_0 + \beta_1 x_{1,i}+ \beta_2 x_{2,i} + \beta_3 x_{3,i}+ \epsilon_i \\ \text{where } \epsilon & \sim normal(0,\sigma) \end{split} $$
+
+The betas are the coefficient estimates. And the x values are variables. Those values are:
+
+| Site         | Value of $x_1$ | Value of $x_2$ | Value of $x_3$ |
+|--------------|----------------|----------------|----------------|
+| Popocatepetl | 0              | 0              | 0              |
+| Texcoco      | 1              | 0              | 0              |
+| Tlatelolco   | 0              | 1              | 0              |
+| Topilejo     | 0              | 0              | 1              |
+
+: Now, let's run the model:
+
+```{r}
+model3<-lm(mass~site,data=teporingosall) 
+summary(model3)
+```
+
+Wow! We used the same exact code as before. This makes things easy! However, it is difficult to know whether we reject or accept the null.
+
+A good way to do it is by running an anova, to see whether there is an effect of site on mass:
+
+```{r}
+anova(model3)
+```
+
+And if there are significant differences, we then have to figure out WHICH sites are different from each other doing a post-hoc pairwise comparison.
+
+For this, we need to use the package `emmeans`. Make sure to download it. **Do not download it within your Quarto file, that will cause issues when rendering!**
+
+```{r}
+
+library(emmeans)
+emm.s<-emmeans(model3, "site")
+pairs(emm.s)
+```
+
+::: callout-caution
+## Q3. 1pt ✏️
+
+What sites are different from each other?
+:::
+
+## Model with a continuos variable
+
+We will now run a model with a single continuous variable. Essentially testing whether the explanatory variable has an effect on the response variable.
+
+First, let's read the dataset:
+
+```{r}
+foodav<-read.csv("foodav.csv")
+head(foodav)
+```
+
+This dataset cotains data on 63 sampled sites of *Poeciliopsis baenschi* 🐟. This is a small viviparous fish, and you are studying whether the food availability at each site has an effect on the mean reproductive effort (measured as wet weight in grams) of this species. **I PRESENTED THIS EXAMPLE IN CLASS! YOU CAN COPY THE CODE FROM THE SLIDES AND CHECK WHETHER YOU HAVE THE CORRECT OUTPUT!**
+
+Because our variable is continuous, x takes different values. Let's remember our equation for this model:
+
+$$ \begin{split} y_i & \sim \beta_0 + \beta_1x_i + \epsilon_i \\ \text{where } \epsilon & \sim normal(0,\sigma) \end{split} $$Or, in this specific case:
+
+$$ Reproductive \ effort_i \sim \beta_0 + \beta_1Food \ availability_i + \epsilon_i \\ $$
+
+The relevant hypotheses would be:
+
+-   $$ Ho : \beta_1 = 0 $$
+
+-   $$ Ha : \beta_1 \neq 0$$
+
+Essentially whether there is an effect of food availability on reproductive effort or not.
+
+The way we run this model is the same as before:
+
+```{r}
+modelfish<-lm(ReproductiveEffort~Foodavailability,data = foodav)
+summary(modelfish)
+```
+
+So, for a site with a food availability index of one, our estimated reproductive effort would be:
+
+```{r}
+0.89490 + 1.19387*1
+```
+
+::: callout-warning
+## Question 4 📝 1 pt.
+
+What is the food availability of a site with a food index of 3.87?
+:::
+
+You could estimate the food availability and a confidence interval (crit.value \* std. error) for an infinity of values. However, the `predict.lm` function does it for you:
+
+```{r}
+predictedv<-predict.lm(modelfish,foodav,interval="co")
+foodav<-cbind(foodav,predictedv)
+```
+
+And that can be super useful for plotting!:
+
+```{r}
+
+ggplot(foodav, aes(x = Foodavailability, y = ReproductiveEffort,ymin=lwr,ymax=upr)) +
+   geom_point() +
+   geom_line(aes(y=fit),color="blue") +
+   geom_ribbon(alpha=0.2)+
+   theme_classic()
+
+```
+
+Pretty cool! And kind of easy, right?
+
+## Model with categorical and continuous variables
+
+In this case, you are working for a food company that is developing a drug that lowers sugar consumption in rats.
+
+You are testing 3 doses: control, mid, and high. You do this in rats that are being fed ad-libitum. You also record the daily consumption of food "pre-trial", and finally the daily consumption of food "post trial".
+
+Read the drugZ csv:
+
+```{r}
+drugrat<-read.csv("drug_rat.csv")
+```
+
+Where FC is final consumption, IC is initial consumption.
+
+and run the following model:
+
+```{r}
+modeld<-lm(FC~IC+Dose,data=drugrat)
+summary(modeld)
+```
+
+::: callout-warning
+## Questions 5-9 ✏️
+
+5.  Write the model equation (using betas). You can ask me how to write equations in Quarto! Or you can google: "math in RMarkdown" to find good online resources.
+6.  Write the appropriate hypothesis
+7.  Interpret the model output
+8.  Run an anova (and a Tukey test using emmeans if necessary) to test whether there is an effect of dose on final consumption. 2 pts
+9.  Plot the points, and predicted values
+:::
+
+--- End of assignment —
+
+```{r eval=FALSE, echo=FALSE}
+drugzpred<-predict.lm(modeld,drugz,interval = "co")
+
+drugz2<-cbind(drugz,drugzpred)
+drugz2
+```
+
+```{r eval=FALSE, echo=FALSE}
+ggplot(drugz2, aes(x = IC, y = FC,ymin=lwr,ymax=upr, color=Dose, shape=Dose)) +
+   geom_point() +
+   geom_line(aes(y=fit)) +
+   geom_ribbon(alpha=0.1)+
+   theme_classic()
+```
+
+```{r eval=FALSE, echo=FALSE}
+emmeans(modeld,pairwise~Dose)
+```
+
+```{r eval=FALSE, echo=FALSE}
+modeld2<-lm(FC~IC*Dose,data=drugz)
+summary(modeld2)
+
+
+
+```
+
+```{r eval=FALSE, echo=FALSE}
+drugzpred<-predict.lm(modeld2,drugz,interval = "co")
+
+drugz3<-cbind(drugz,drugzpred)
+```
+
+```{r eval=FALSE, echo=FALSE}
+ggplot(drugz3, aes(x = IC, y = FC,ymin=lwr,ymax=upr, color=Dose, shape=Dose)) +
+   geom_point() +
+   geom_line(aes(y=fit)) +
+   geom_ribbon(alpha=0.2)+
+   theme_classic()
+```
+
+```{r eval=FALSE, echo=FALSE}
+ggplot(data = drugz, aes(x = 1, y = FC))+
+  geom_violin(fill = gray(0.7, 0.1) )+
+  geom_point( alpha = 0.3)+
+  geom_boxplot(fill = gray(0.7, 0.2), width = 0.1)+
+  theme_classic()
+```

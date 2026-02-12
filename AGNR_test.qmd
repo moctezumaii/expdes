@@ -1,0 +1,73 @@
+---
+title: "In class assignment"
+subtitle: "University of Tennessee - AGNR220/SNR220"
+format: 
+  html:
+    embed-resources: true
+editor: visual
+---
+
+```{r}
+#| include: false
+knit_print.data.frame = function(x, ...) {
+  res = paste(c("", "", 
+                knitr::kable(x, digits = 2) |> 
+                  kableExtra::kable_styling()), collapse = "\n")
+  knitr::asis_output(res)
+}
+
+registerS3method(
+  "knit_print", "data.frame", knit_print.data.frame,
+  envir = asNamespace("knitr")
+)
+
+```
+
+# Dairy Farm🐄
+
+A dairy farm 🐮 in Wisconsin has purchased a new dietary supplement that claims to increase the milk production. The farm has 1,000 cows, and they are giving the supplement to half of them.
+
+After a while, you decide to measure the amount of milk production in 40 cows taking the supplement, and in 40 cows that are not taking the supplement.
+
+Please download the datasets from `Canvas`.
+
+Read them into R and convert them into a vector. Look at the following code:
+
+(You can copy the code)
+
+```{r}
+CowControl<-read.csv("CowControl.csv")
+CowSupplement<-read.csv("CowSupplement.csv")
+CowControl<-CowControl$x
+CowSupplement<-CowSupplement$x
+```
+
+## Step 1.
+
+Use the `sample()` function to sample 40 individuals from the `CowControl` object. Name this object `control`. Use the `sample()` function to sample 40 individuals from the `CowTreatment` object. Name this object `treatment`.
+
+```{r echo=F}
+
+control<-sample(CowControl,40)
+supplement<-sample(CowSupplement,40)
+```
+
+Then, copy and paste the following code, to run your t test! Easy! 😃
+
+```{r eval=FALSE}
+t.test(control,supplement, var.equal = T)
+```
+
+## Assignment Question 1 🐮
+
+Based on your test, make a statistical decision. Does the supplement have an effect?
+
+## Assignment Question 2 🐮
+
+New information:
+
+-   The supplement costs \$30.00 for 1,000 g.
+
+-   Each cow needs to take 100 g. each day
+
+-   The farm sells each liter of raw milk to a processing facility at \$0.40
