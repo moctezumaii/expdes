@@ -8,11 +8,11 @@ format:
 editor: visual
 ---
 
-# Linear Models
+# Linear Models with Categorical Data
 
-NOTE: FOR THESE EXAMPLES, WE ARE MEETING ALL OF THE ASSUMPTIONS OF A LINEAR MODEL. WE WILL LEARN HOW TO TEST FOR THEM IN TE NEXT ASSIGNMENT. FOR NOW, I WANT YOU TO FAMILIARIZE WITH RUNNING MODELS AND INTERPRETING THEM.
+In this assignment, we will run linear models with categorical data, check assumptions, and connect linear models to the t-tests you have heard about. By the end of this assignment, you should understand how to check assumptions, interpret model output, and run t-tests both "by hand" (using the equation) and with the built-in R function.
 
-## One categorical group linear model
+## One categorical group: Linear model and assumptions
 
 So far we have talked about many types of linear models. Now is the time to test them. The first model you will run is a linear model with no covariates (similar to a one-sample t-test):
 
@@ -37,7 +37,65 @@ mousedata
 
 ```
 
+Before we run any model, we need to check the **assumptions** of a linear model. Remember, there are four main assumptions:
+
+1.  **Independence** — we assume the observations are independent of each other (we won't test this one; it's a design issue)
+2.  **Normality** — the residuals should be normally distributed
+3.  **Homogeneity of variance** (homoscedasticity) — the variance of the residuals should be constant
+4.  **Linearity** — the relationship between the response and the predictor should be linear (for categorical data, this is usually met)
+
+We will check assumptions 2 and 3 (and linearity when applicable). Let's first run the model, and then check the assumptions using diagnostic plots.
+
+```{r}
+#mdata<-as.data.frame(mousedata)
+model1<-lm(mousedata~1)
+```
+
+#### Checking Normality with a QQ-plot
+
+A QQ-plot (quantile-quantile plot) compares the quantiles of our residuals against the theoretical quantiles of a normal distribution. If our residuals are normally distributed, the points should fall approximately along the diagonal line.
+
+I will use the qqplotr package, but you can also plot this using the base R function `qqnorm` and `qqline`. If you want to use the base R functions, you can do it like this:
+```{r eval=FALSE}
+#run qqplot
+qqnorm(resid(model1))
+qqline(resid(model1))
+
+```
+
+```{r}
+#Run this in ggplot using the qqplot function, with a confidence envelope
+library(ggplot2)
+library(qqplotr)
+model1_resid <- data.frame(residuals = resid(model1))
+
+ggplot(model1_resid, aes(sample = residuals)) +
+  stat_qq_band(alpha = 0.3, fill = "steelblue") +
+  stat_qq_line(color = "red") +
+  stat_qq_point() +
+  labs(title = "QQ-plot with 95% Confidence Envelope",
+       x = "Theoretical Quantiles",
+       y = "Sample Quantiles") +
+  theme_bw()
+```
+
+#### Checking Homogeneity of Variance (Residuals vs. Fitted)
+
+We plot the residuals against the fitted (predicted) values. If the assumption is met, we should see a random cloud of points with no obvious pattern. The spread of the residuals should be roughly constant across the fitted values.
+
+```{r}
+plot(fitted(model1), resid(model1), xlab="Fitted values", ylab="Residuals", main="Residuals vs Fitted")
+abline(h=0, lty="dashed")
+```
+
+::: callout-caution
+## Q1. 2pts ✏️
+
+Look at both diagnostic plots. Do the assumptions of normality and homogeneity of variance seem to be met? Explain what you see in each plot. Remember, this is not a test that you pass or fail, so, you can have some nuance here.
+:::
+
 the question is: is the average mass of your mice equal to 20.2 grams?
+
 
 The relevant hypotheses would be:
 
@@ -46,7 +104,8 @@ The relevant hypotheses would be:
     $$
 
 -   $$
-    Ha : \mu_1 \neq 20.2$$
+    Ha : \mu_1 \neq 20.2
+    $$
 
 And our model looks like:
 
@@ -56,33 +115,7 @@ $$
 
 where $\beta_0$ represents the estimated $\mu_1$
 
-If you remember from the last lab, we could run a t-test:
-
-```{r}
-
-t.test(mousedata,mu=20.2)
-
-```
-
-But I actually recommend running it as a linear model instead. This is very easy to do:
-
-```{r}
-mdata<-as.data.frame(mousedata)
-#mdata
-model1<-lm(mousedata~1,data=mdata)
-
-summary(model1)
-
-```
-
-```{r}
-model1<-lm(mousedata~1)
-summary(model1)
-```
-
-However, it might be a bit tougher to interpret. Particularly because this model is not testing our null hypothesis. Remember, we are wondering whether the mean mass of our mice is equal to 20.2 grams!
-
-In order to run this model we do the following:
+However, the model above is not testing our null hypothesis. Remember, we are wondering whether the mean mass of our mice is equal to 20.2 grams! In order to test that, we subtract the hypothesized value:
 
 ```{r}
 model1alternative<-lm(mousedata-20.2~1)
@@ -90,9 +123,52 @@ summary(model1alternative)
 ```
 
 ::: callout-caution
-## Q1. 1pt ✏️
+## Q2. 1pt ✏️
 
-Compare the output of the last model you ran with the output you obtained from the t-test. Which one has more information? Are the conclusions the same or different?
+Interpret the output of `model1alternative`. What is the estimate of $\beta_0$? What does the p-value tell you? Do you reject or fail to reject the null hypothesis?
+:::
+
+### The one-sample t-test: by hand
+
+The t-test is simply a specific case of the linear model! The equation for the one-sample t-statistic is:
+
+$$
+t = \frac{\bar{x} - \mu_0}{SE} = \frac{\bar{x} - \mu_0}{\frac{s}{\sqrt{n}}}
+$$
+
+Where $\bar{x}$ is the sample mean, $\mu_0$ is the hypothesized mean (20.2), $s$ is the sample standard deviation, and $n$ is the sample size.
+
+You have all the tools you need. Here are the functions:
+
+-   `mean()` — to estimate the sample mean
+-   `sd()` — to estimate the sample standard deviation
+-   `length()` — to get the sample size
+-   `sqrt()` — for the square root
+
+::: callout-caution
+## Q3. 2pts ✏️
+
+Using the equation above and the R functions listed, estimate the t-statistic for the one-sample t-test by hand (in R). Show your code and report the t-value you obtained.
+
+Then, obtain the p-value from that t-statistic using the following function:
+
+```{r eval=FALSE}
+2*pt(abs(your_t_value), df=length(mousedata)-1, lower.tail=FALSE)
+```
+
+(Replace `your_t_value` with the t you calculated). The `pt` function gives us the probability from a t-distribution. We multiply by 2 because this is a two-tailed test. Compare this p-value with the one you got from the linear model.
+:::
+
+Now, let's confirm our results using the built-in `t.test` function:
+
+```{r}
+t.test(mousedata,mu=20.2)
+```
+
+::: callout-caution
+## Q4. 1pt ✏️
+
+Compare the t-statistic and p-value you calculated by hand with the output from `t.test`. Are they the same? How does the output compare with the linear model?
 :::
 
 ## Categorical: two groups
@@ -139,13 +215,9 @@ ggplot(data = teporingos, aes(x = site, y = mass)) +
   scale_color_manual(values=c("#57825a","#dd2e46"))
 ```
 
-In this case, you could run a t-test:
 
-```{r}
-t.test(mass~site, var.equal=TRUE, data=teporingos)
-```
 
-But we could also run a linear model with the following equation:
+Let's run the linear model:
 
 $$
 y_i = \beta_0 + \beta_1x_{1,i} + \epsilon_i \ \ \ \ \ \text{where} \ \ \ \ \ \epsilon_i \sim \text{N}(0,\sigma)
@@ -160,20 +232,36 @@ Where $x_1$ (population) is treated as:
 
 ```{r}
 model2<-lm(mass~site, data=teporingos)
-summary(model2)
+
+```
+
+#### Checking assumptions
+
+Let's check the assumptions for this model too:
+
+```{r}
+qqnorm(resid(model2))
+qqline(resid(model2))
 ```
 
 ```{r}
-t.test(mass~site,var.equal=T, data=teporingos)
+plot(fitted(model2), resid(model2), xlab="Fitted values", ylab="Residuals", main="Residuals vs Fitted")
+abline(h=0, lty="dashed")
 ```
 
 ::: callout-caution
-## Q2. 1pt ✏️
+## Q5. 1pt ✏️
 
-Compare the output of the last model you ran with the output you obtained from the t-test. Which one has more information? Are the conclusions the same or different?
+Do the assumptions appear to be met for this model? Briefly explain.
 :::
 
-Let's look at the equation that you just ran, but let's replace the variable names .
+Now let's look at the model output:
+
+```{r}
+summary(model2)
+```
+
+Let's look at the equation that you just ran, but let's replace the variable names.
 
 $$
 \begin{split}
@@ -200,6 +288,63 @@ y_i & \sim \beta_0 + \beta_1+ \epsilon_i \\
 \end{split}
 $$
 
+::: callout-caution
+## Q6. 1pt ✏️
+
+Interpret the model output. What does $\beta_0$ represent? What does $\beta_1$ represent? Is there a significant difference between the two populations?
+:::
+
+### The two-sample t-test (equal variance): by hand
+
+Just like the one-sample t-test, the two-sample t-test assuming equal variances has its own equation:
+
+$$
+t = \frac{\bar{x}_1 - \bar{x}_2}{s_p\sqrt{\frac{1}{n_1}+\frac{1}{n_2}}}
+$$
+
+Where $s_p$ is the pooled standard deviation:
+
+$$
+s_p = \sqrt{\frac{(n_1-1)s_1^2 + (n_2-1)s_2^2}{n_1+n_2-2}}
+$$
+
+Here, $\bar{x}_1$ and $\bar{x}_2$ are the sample means of each group, $s_1$ and $s_2$ are the sample standard deviations, and $n_1$ and $n_2$ are the sample sizes.
+
+You will need to separate the data by group. You can do this with:
+
+```{r eval=FALSE}
+group1<-teporingos$mass[teporingos$site=="texcoco"]
+group2<-teporingos$mass[teporingos$site=="topilejo"]
+```
+
+And then use the same functions as before: `mean()`, `sd()`, `length()`, `sqrt()`.
+
+::: callout-caution
+## Q7. 2pts ✏️
+
+Using the equations above, estimate the t-statistic for the two-sample t-test (assuming equal variance) by hand in R. Show your code and report the t-value you obtained.
+
+Then, obtain the p-value using:
+
+```{r eval=FALSE}
+2*pt(abs(your_t_value), df=length(group1)+length(group2)-2, lower.tail=FALSE)
+```
+
+Compare with the linear model output.
+:::
+
+Now, let's confirm using the `t.test` function:
+
+```{r}
+t.test(mass~site, var.equal=TRUE, data=teporingos)
+```
+
+::: callout-caution
+## Q8. 1pt ✏️
+
+Compare the t-statistic and p-value from your hand calculation, the `t.test` function, and the linear model. Are the conclusions the same?
+:::
+
 ::: {.callout-warning appearance="minimal"}
 ## Stop! 🛑
 
@@ -209,6 +354,8 @@ At this time, you should have understood all of the concepts I have presented in
 ## Categorical analysis with more than two groups
 
 After analyzing the 🐇 teporingos data, you collect some more data, from two other populations. So now, you have a total of four populations!
+
+*We will talk more about this when we see ANOVAs... just see that the logic is the same!*
 
 The relevant hypotheses would be:
 
@@ -271,156 +418,80 @@ pairs(emm.s)
 ```
 
 ::: callout-caution
-## Q3. 1pt ✏️
+## Q9. 1pt ✏️
 
 What sites are different from each other?
 :::
 
-## Model with a continuos variable
+## Linear models work for continuous variables too!
 
-We will now run a model with a single continuous variable. Essentially testing whether the explanatory variable has an effect on the response variable.
-
-First, let's read the dataset:
-
-```{r}
-foodav<-read.csv("foodav.csv")
-head(foodav)
-```
-
-This dataset cotains data on 63 sampled sites of *Poeciliopsis baenschi* 🐟. This is a small viviparous fish, and you are studying whether the food availability at each site has an effect on the mean reproductive effort (measured as wet weight in grams) of this species. **I PRESENTED THIS EXAMPLE IN CLASS! YOU CAN COPY THE CODE FROM THE SLIDES AND CHECK WHETHER YOU HAVE THE CORRECT OUTPUT!**
-
-Because our variable is continuous, x takes different values. Let's remember our equation for this model:
-
-$$ \begin{split} y_i & \sim \beta_0 + \beta_1x_i + \epsilon_i \\ \text{where } \epsilon & \sim normal(0,\sigma) \end{split} $$Or, in this specific case:
-
-$$ Reproductive \ effort_i \sim \beta_0 + \beta_1Food \ availability_i + \epsilon_i \\ $$
-
-The relevant hypotheses would be:
-
--   $$ Ho : \beta_1 = 0 $$
-
--   $$ Ha : \beta_1 \neq 0$$
-
-Essentially whether there is an effect of food availability on reproductive effort or not.
-
-The way we run this model is the same as before:
-
-```{r}
-modelfish<-lm(ReproductiveEffort~Foodavailability,data = foodav)
-summary(modelfish)
-```
-
-So, for a site with a food availability index of one, our estimated reproductive effort would be:
-
-```{r}
-0.89490 + 1.19387*1
-```
-
-::: callout-warning
-## Question 4 📝 1 pt.
-
-What is the food availability of a site with a food index of 3.87?
-:::
-
-You could estimate the food availability and a confidence interval (crit.value \* std. error) for an infinity of values. However, the `predict.lm` function does it for you:
-
-```{r}
-predictedv<-predict.lm(modelfish,foodav,interval="co")
-foodav<-cbind(foodav,predictedv)
-```
-
-And that can be super useful for plotting!:
-
-```{r}
-
-ggplot(foodav, aes(x = Foodavailability, y = ReproductiveEffort,ymin=lwr,ymax=upr)) +
-   geom_point() +
-   geom_line(aes(y=fit),color="blue") +
-   geom_ribbon(alpha=0.2)+
-   theme_classic()
-
-```
-
-Pretty cool! And kind of easy, right?
-
-## Model with categorical and continuous variables
+So far, all of our examples have been with categorical data (groups). But the beauty of linear models is that they work exactly the same way with continuous predictor variables! The assumptions are the same, and we check them the same way.
 
 In this case, you are working for a food company that is developing a drug that lowers sugar consumption in rats.
 
-You are testing 3 doses: control, mid, and high. You do this in rats that are being fed ad-libitum. You also record the daily consumption of food "pre-trial", and finally the daily consumption of food "post trial".
+You are testing 3 doses: control, mid, and high. You do this in rats that are being fed ad-libitum. You also record the daily consumption of food "pre-trial" (Initial Consumption), and finally the daily consumption of food "post trial" (Final Consumption).
 
-Read the drugZ csv:
+Read the drug_rat csv:
 
 ```{r}
 drugrat<-read.csv("drug_rat.csv")
+head(drugrat)
 ```
 
 Where FC is final consumption, IC is initial consumption.
 
-and run the following model:
+Let's run a model with both a continuous variable (IC) and a categorical variable (Dose):
 
 ```{r}
 modeld<-lm(FC~IC+Dose,data=drugrat)
 summary(modeld)
 ```
 
-::: callout-warning
-## Questions 5-9 ✏️
+#### Checking assumptions
 
-5.  Write the model equation (using betas). You can ask me how to write equations in Quarto! Or you can google: "math in RMarkdown" to find good online resources.
-6.  Write the appropriate hypothesis
-7.  Interpret the model output
-8.  Run an anova (and a Tukey test using emmeans if necessary) to test whether there is an effect of dose on final consumption. 2 pts
-9.  Plot the points, and predicted values
+Just like before, we check the assumptions:
+
+```{r}
+qqnorm(resid(modeld))
+qqline(resid(modeld))
+```
+
+```{r}
+plot(fitted(modeld), resid(modeld), xlab="Fitted values", ylab="Residuals", main="Residuals vs Fitted")
+abline(h=0, lty="dashed")
+```
+
+::: callout-caution
+## Q10. 1pt ✏️
+
+Do the assumptions appear to be met for this model? Briefly explain.
 :::
 
+::: callout-caution
+## Q11. 2pts ✏️
+
+Interpret the model output. What does the coefficient for IC represent? What do the coefficients for Dose represent? Which doses are significantly different from the control?
+:::
+
+We can also run an ANOVA to test whether there is an overall effect of dose on final consumption:
+
+```{r}
+anova(modeld)
+```
+
+And if needed, we can do pairwise comparisons:
+
+```{r}
+emm.d<-emmeans(modeld, "Dose")
+pairs(emm.d)
+```
+
+::: callout-caution
+## Q12. 1pt ✏️
+
+Based on the pairwise comparisons, which doses are significantly different from each other?
+:::
+
+Pretty cool! And kind of easy, right? The linear model framework works for categorical data (which is the same as t-tests and ANOVAs) AND for continuous data. The logic is always the same!
+
 --- End of assignment —
-
-```{r eval=FALSE, echo=FALSE}
-drugzpred<-predict.lm(modeld,drugz,interval = "co")
-
-drugz2<-cbind(drugz,drugzpred)
-drugz2
-```
-
-```{r eval=FALSE, echo=FALSE}
-ggplot(drugz2, aes(x = IC, y = FC,ymin=lwr,ymax=upr, color=Dose, shape=Dose)) +
-   geom_point() +
-   geom_line(aes(y=fit)) +
-   geom_ribbon(alpha=0.1)+
-   theme_classic()
-```
-
-```{r eval=FALSE, echo=FALSE}
-emmeans(modeld,pairwise~Dose)
-```
-
-```{r eval=FALSE, echo=FALSE}
-modeld2<-lm(FC~IC*Dose,data=drugz)
-summary(modeld2)
-
-
-
-```
-
-```{r eval=FALSE, echo=FALSE}
-drugzpred<-predict.lm(modeld2,drugz,interval = "co")
-
-drugz3<-cbind(drugz,drugzpred)
-```
-
-```{r eval=FALSE, echo=FALSE}
-ggplot(drugz3, aes(x = IC, y = FC,ymin=lwr,ymax=upr, color=Dose, shape=Dose)) +
-   geom_point() +
-   geom_line(aes(y=fit)) +
-   geom_ribbon(alpha=0.2)+
-   theme_classic()
-```
-
-```{r eval=FALSE, echo=FALSE}
-ggplot(data = drugz, aes(x = 1, y = FC))+
-  geom_violin(fill = gray(0.7, 0.1) )+
-  geom_point( alpha = 0.3)+
-  geom_boxplot(fill = gray(0.7, 0.2), width = 0.1)+
-  theme_classic()
-```
