@@ -1,5 +1,5 @@
 ---
-title: "Factoraial and Nested Design"
+title: "Factorial and Nested Design"
 author: "Dr. Alejandro Molina Moctezuma"
 format:
   html: 
@@ -119,7 +119,7 @@ ggplot(dataanova, aes(x = x, y = values)) +
 
 ## Insecticide and abundance of moths 🦋
 
-You are a graduate student looking at data on abundance of moth larvae in fields following one of three treatments: Control, Bt, and Dimilin. Unfortunately, the previous graduate student and professor both left the institution), so, you do not have much of an idea of the experimental design. Luckily, you have the data and the following image from a presentation they gave!\
+You are a graduate student looking at data on abundance of moth larvae in fields following one of three treatments: Control, Bt, and Dimilin. Unfortunately, the previous graduate student and professor both left the institution), so, you do not have much of an idea of the experimental design. Luckily, you have the data and the following image from a presentation they gave! Use the `mdat2.csv` file!\
 ![](images/paste-1.png)
 
 ## Cows and Breeds 🐮
