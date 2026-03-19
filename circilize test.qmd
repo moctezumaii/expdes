@@ -1,0 +1,76 @@
+---
+title: "Circle Diagram"
+author: "Katie Wood"
+format: html
+editor: visual
+---
+
+# Testing Circlize
+
+```{r}
+install.packages("circlize")
+```
+
+```{r}
+library(circlize)
+```
+
+```{r}
+VITVac9018 <- "/Users/kdsav/OneDrive/FWF 690 Projects/3/28/25 Project/VITVac9018_v1.0.fasta"
+```
+
+```{r}
+VITVix101 <- "/Users/kdsav/OneDrive/FWF 690 Projects/3/28/25 Project/VITVix101-14Mgt_v1.0.fasta"
+```
+
+```{r}
+VITVvi <- "/Users/kdsav/OneDrive/FWF 690 Projects/3/28/25 Project/VITVvi_vBlaCoriSeeded_v1.0.fasta"
+```
+
+```{r}
+library(BiocManager)
+```
+
+```{r}
+BiocManager::install("Biostrings")
+```
+
+```{r}
+library(Biostrings)
+```
+
+```{r}
+genome_comparison <- data.frame(
+    chr = c("VITVac9018", "VITVac9018", "VITVix101", "VITVix101"),
+    start = c(1000, 5000, 1200, 5300),
+    end = c(2000, 6000, 2200, 6300),
+    feature = c("homology1", "homology2", "homology1", "homology2")
+)
+```
+
+```{r}
+chromosomes <- unique(genome_comparison$chr)
+```
+
+```{r}
+xlim_values <- sapply(chromosomes, function(chr) {
+  region <- genome_comparison[genome_comparison$chr == chr, ]
+  c(min(region$start), max(region$end))
+})
+```
+
+```{r}
+xlim_matrix <- matrix(unlist(xlim_values), ncol = 2, byrow = TRUE)
+```
+
+```{r}
+circos.initialize(factors = chromosomes, xlim = xlim_matrix)
+circos.track(ylim = c(0, 1), panel.fun = function(x, y) {
+    chr = CELL_META$sector.index
+    xlim = CELL_META$xlim
+    circos.text(mean(xlim), 0.5, chr, facing = "bending.inside", niceFacing = TRUE)
+})
+circos.link("VITVac9018", 1000, "VITVix101", 1200, col = "blue")
+circos.link("VITVac9018", 5000, "VITVix101", 5300, col = "red")
+
+```

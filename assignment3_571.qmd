@@ -1,0 +1,171 @@
+---
+title: "Assignment 2. SNR/ANSC/PLSC 571"
+subtitle: "t-tests"
+author: "Dr. Alejandro Molina-Moctezuma"
+format: 
+  html:
+    self-contained: true
+editor: visual
+---
+
+## 1. Confidence Intervals
+
+Before we start, We will simulate a population. This simulated population has 5,438 mussels (Green Floater) in a stream. Most future examples will use real data (which can be pretty messy). This example will have simulated data!
+
+![](images/clipboard-3390901893.png){width="228"}
+
+We will simulate the size distribution (in mm) of this mussel. Size in this mussel is normally distributed with mean 40, and a standard deviation of 6. Or: $X\sim N(\mu = 40, \sigma = 6)$
+
+\*Because we are simulating this population, everyone will get different results. That is OK.
+
+First, it might be a good idea to set a seed. Choose a different number than me. This time, your will continue to have the same results each time you render this file, rather than having a different result.
+
+```{r}
+set.seed(123) #change the 123 for any number you want
+```
+
+This population has 5438 individuals. To simulate this code, we will use:
+
+```{r}
+
+pop <- rnorm(n=5438, mean=40, sd=6)
+```
+
+Now, we are going out to snorkel and sample 15 individuals at random
+
+```{r eval=FALSE}
+SnorkSample1 <- sample(pop, size=15)
+SnorkSample1
+
+```
+
+Now, estimate the mean, standard deviation, and n of the sample. These are the names I want you to use for each estimate:
+
+```{r eval=F}
+X_bar<-
+s<-
+n<-
+
+```
+
+And now, calculate the lower and upper confidence interval using the qt.
+
+The equation of the confidence interval is:
+
+$$
+CI = \bar{x} \pm crit.value \times s/\sqrt{n}
+$$
+
+And we will use the `qt()` function to get the critical value.
+
+::: callout-note
+## What is qt?
+
+qt gives us the "critical value" for a t distribution.
+
+In a normal distribution, the critical values are \~1.96 (look online for standard normal distribution). However, we can only use the normal distribution with a very large n, or with a known population variance $\sigma$ (parameter). Here we are using s (sample), which gives us more uncertainty. So, we are using the t distribution.
+:::
+
+```{r eval=F}
+lowerCI <- X_bar - qt(0.975, df=n-1)*s/sqrt(n)
+upperCI <- X_bar + qt(0.975, df=n-1)*s/sqrt(n)
+```
+
+::: callout-caution
+## Q1. 3pts
+
+a\) Explain what `qt()` is doing, and why we are asking for `qt(0.975,n)`
+
+For this answer, you can consult books, the internet or AI (but, please use your own words).
+
+Another good source is the hlep function in R:
+
+`?qt` will give you the help file for this function.
+:::
+
+OK, now, assume we have a second population of the Green Floater mussel in a different body of water. This population has 1,819 mussels. You believe that the lower abundance (and lower density) of mussels may result in a larger size. The real population length parameter is represented by: $X_2 \sim N(\mu = 41.6, \sigma = 6)$
+
+First, let's simulate this second population
+
+```{r}
+pop2 <- rnorm(n=1819, mean=41.6, sd=6)
+```
+
+Now, we are going out to sample 15 individuals. Why 15? In this case let's assume it is because sampling is time consuming and difficult and you only get to sample 15 individuals.
+
+```{r eval=FALSE}
+SnorkSample2 <- sample(pop2, size=15)
+SnorkSample2
+
+```
+
+::: callout-caution
+## Q2. 3pts
+
+a\) Estimate mean, sd, and n of your sample of population 2. b) estimate the lower and upper CI for this second population. c) assume you don't know the population values, and all you have to go on are your estimates and confidence intervals, would you say these populations are different in size? More importantly, would you say that the mussels from the population 2 are larger?
+:::
+
+```{r echo=FALSE, eval=FALSE}
+pop<-rnorm(n=5438,mean=40,sd=6)
+Msample1<-sample(pop,size=15)
+Msample1
+X_bar<-mean(Msample1)
+s<-sd(Msample1)
+n<-length(Msample1)
+X_bar
+s
+n
+lowerCI <- X_bar - qt(0.975, df=n-1)*s/sqrt(n)
+upperCI <- X_bar + qt(0.975, df=n-1)*s/sqrt(n)
+```
+
+I recommend plotting (or drawing in your notebook!) the points and CI's to make a good judgement of whether they are different!
+
+## 3. Two sample t-test
+
+Now, sometimes it's hard to come up with conclusions only using the confidence intervals, so let's use Null Hypothesis Statistical Testing. We are going to repeat the exercise but with an unpaired 2 sample t-test test.
+
+Remember the steps of NHST? They are:
+
+1.  Specify $𝐻_0$ 𝑎𝑛𝑑 $𝐻_𝐴$ and test statistic
+2.  Specify a priori significance level
+3.  Collect the data
+4.  Assume $𝐻_0$ is true, and compare your results to expected result under $𝐻_0$ (this means: running the test statistic)
+5.  If the prob of obtaining a value as or more extreme as the one obtained… reject $H_0$
+6.  Otherwise fail to reject
+
+Check `week03_01.pdf` slideshow, slide 30 f you need help running the t test.
+
+::: callout-caution
+## Q2. 3pts
+
+a)  Following the 5 steps of NHST, explore whether the population 2 has larger mussels than population 1. YOUR SAMPLE SIZE FOR BOTH SITES SHOULD BE 15! You should define what you did for each step. b) Are your conclusions different than what you obtained from Q1? c) Check the simulated population values (the real parameter mean and variance). Did your test accurately reflect reality, or did it committed an error? What type of error? Why do you think this happened?
+:::
+
+Now, let's explore what happens when we change the sample size.
+
+::: callout-caution
+## Q3. 3pts
+
+a)  Repeat question 2, subsection a, but with a sample size of 125 individuals for site 1, and 250 for site 2. b) Where there any differences with Q2? Why?
+:::
+
+Before continuing, think... what else might affect the power of the test?
+
+We are now going to run this experiment once again, but follow these directions:
+
+1.  Population 1: $X\sim N(\mu = 37.15, \sigma = 6)$ and your sample size will be 15
+
+2.  Population 2: $X \sim N(\mu = 48.9, \sigma = 6)$ and your sample size will be 15
+
+Simulate your populations, simulate your samples and run a t-test.
+
+::: callout-caution
+## Q4. 3pts
+
+a)  Repeat question 2, subsection a, but with the new population values. b) Where there any differences with Q2? Why? Your samples are small!
+:::
+
+------------------------------------------------------------------------
+
+End of assignment 2

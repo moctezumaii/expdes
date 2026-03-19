@@ -1,0 +1,175 @@
+---
+title: "Completely Randomized Design"
+author: "Dr. Alejandro Molina Moctezuma"
+format:
+  html: 
+    embed-resources: true
+    fig_height: 4.5
+    fig_width: 4.5
+    highlight: tango
+    number_sections: true
+    pandoc_args: --number-offset=6
+    toc: true
+    toc_depth: 2
+editor: visual
+execute: 
+  warning: false
+---
+
+```{r echo=FALSE}
+library(FANR6750)
+data("treedata")
+set.seed(40)
+treedata$height<-treedata$height*1.1+rnorm(32,0,0.5)
+
+```
+
+# Introduction
+
+You are working on a reforestation project, in which a nearby greenhouse has developed four different cultivars of a native tree. In this particular situation, fast growing trees and tall trees are of importance. Hence, you want to know if there is a cultivar that might be better than the rest. You create a completely randomized experiment where you plant 32 seedlings in a large plot. You review the data two years later.
+
+Download the `treedata.csv` file and create a new object named `treedata`. Explore the data.
+
+::: callout-important
+## Question 1 ✏️ 4 pts.
+
+Answer:
+
+1\) How many treatments (save the number in an object named a)
+
+2\) How many observations per treatment? (save the number in an object named n)
+
+3\) How many observational units and experimental units are there
+
+4\) Write the null and alternative hypotheses using a) "plain English", and b) equations
+:::
+
+Let's estimate an Anova using different methods.
+
+::: callout-important
+## Question 2 ✏️ 2 pts.
+
+Run a linear model as we have done before.
+:::
+
+For the following questions you may need to review the latest lecture. You can check the slides on Canvas. These slides contain both the code and the equations you need to answer the questions.
+
+```{r echo=F}
+aov1<-aov(height~species, data=treedata)
+Tukey<-TukeyHSD(aov1)
+
+```
+
+::: callout-important
+## Question 3 ✏️ 4 pts.
+
+1.  Use `aov` to run an Anova. Save this to a new object named aov1. Use summary on aov1
+
+2.  Based on the results from aov reject or fail to reject the null hypothesis
+
+3.  Explore which means are different using `TukeyHSD` . Use `TukeyHSD` on the `aov` object and name the new object "Tukey". Then print it
+
+4.  Explore the model tables using the following code:
+
+```{r results=FALSE}
+table1<-model.tables(aov1, type = "means", se = TRUE)
+print(table1)
+table2<-model.tables(aov1, type = "effects", se = TRUE)
+print(table2)
+```
+
+and describe what each table is showing you.
+
+5.  Use the following code to plot the six comparisons:
+
+```{r eval=F}
+plot(TukeyHSD(aov1))
+
+```
+
+6.  Write a "biological conclusion" based on your results.
+:::
+
+We can also plot the results using `ggplot2` .Use the following code and build a barplot. Be aware! You need three packages for this! Also... make sure the order is correct, sometimes multcompview will rearrange the data. Print "cld" to make sure the order is correct
+
+```{r}
+library(multcompView)
+library(dplyr)
+library(ggplot2)
+ybar.i <- treedata %>% 
+            group_by(species) %>% 
+             summarise(mu = mean(height))
+mean.SE <- as.numeric(table1$se)
+a<-4 #(4 treatments)
+n<-8
+#compute confidence intervals:
+tc <- qt(0.975, a*(n-1))
+lowerCI <- ybar.i$mu - tc*mean.SE
+upperCI <- ybar.i$mu + tc*mean.SE
+cld <- multcompLetters4(aov1, Tukey)
+cld <- as.data.frame.list(cld$species)
+cld<-cld[c(2,3,1,4),]
+ybar.i$cld <- cld$Letters
+
+ggplot(ybar.i, aes(x = species, y = mu, fill = species)) +
+  geom_col() +
+  geom_errorbar(aes(ymin = lowerCI, ymax = upperCI), width = 0) +
+  scale_y_continuous("Plant height")+
+  geom_text(aes(label = cld, y = upperCI), vjust = -0.5) +
+  theme_classic()
+```
+
+There are many ways to plot ANOVA's. I will show one way that I prefer using the `rstatix` and `ggpubr` packages:
+
+```{r}
+library(rstatix)
+library(ggpubr)
+res.aov <- treedata %>% anova_test(height ~ species)
+position<-treedata%>%tukey_hsd(height ~ species)%>%add_xy_position(x = "species")
+ggboxplot(treedata, x = "species", y = "height") +
+  stat_pvalue_manual(position, hide.ns = TRUE) +
+  labs(
+    subtitle = get_test_label(res.aov, detailed = TRUE),
+    caption = get_pwc_label(position)
+    )
+```
+
+This plot also presents data for $\eta^2$ which is only useful when plotting repeated measures analyses.
+
+::: callout-important
+## Question 4 ✏️ 2pts.
+
+What are the differences between the plots using ggplot, the plot using ggpubrand the plot using `plot(tukey`)? Which do you think have more information?
+:::
+
+::: callout-important
+## Question 5 ✏️ 2pts.
+
+Check the lecture materials and estimate an Anova by hand. You will have to estimate:
+
+1- Degrees of freedom
+
+2- Sum of squares for within and among
+
+3- Mean sum of squares
+
+4- F statistic
+
+5- p value using :
+
+```         
+qf(0.95, df1, df2))
+```
+
+where df1 are degrees of freedom among.
+:::
+
+Submit your assignment.
+
+Remember to add the following as your header
+
+::: callout-important
+## Question 6 ✏️ 3pts.
+
+You realize that cultivar A and C were made by the same company and B and D were made by a different company. Do a contrast analysis and compare AC vs BD, and A vs C and B vs D. Check the lecture materials for this
+:::

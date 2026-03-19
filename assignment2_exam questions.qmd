@@ -1,0 +1,173 @@
+---
+title: "Exam question"
+subtitle: "Central limit theorem, CI's, T-test"
+author: "Alejandro Molina-Moctezuma"
+format: 
+  html:
+    self-contained: true
+execute: 
+  eval: false
+editor: visual
+---
+
+# This lab
+
+We are going to do a little experiment regarding the Central Limit Theorem and confidence intervals. We are going to:
+
+1.  Simulate a population.
+2.  Take a sample of size n = 40
+3.  Estimate the mean, and CI of the sample
+4.  Compare it to the population. Did we get it right? Is the real mean encompassed in the population?
+5.  Do it again... and again... and again
+6.  Do it 1000 times
+7.  Plot this using ggplot
+8.  Make some decisions.
+
+This may seem like a lot... but it is not! It can be done fairly easily using R. And I will give you all the code!
+
+EACH ONE OF YOU WILL GET DIFFERENT RESUKTS, AS WE ARE SIMULATING DATA
+
+#### Step 1: Simulate your data
+
+Go to file \> new file \> R script and create a new script.
+
+Choose **only one** of the following examples! Copy the code for your example and run it once in the script
+
+##### Example 1: bats 🦇
+
+This data-set is on the wing aspect ratio of the pygmy round-eared bat.
+
+```{r}
+data<-rnorm(10000, mean = 5.5, sd=0.75) #your population, 10,000 individuals total
+mu<-mean(data) #real population parameter
+sigma<-sd(data)
+mu
+sigma
+hist(data)
+n<-40
+```
+
+##### Example 2: frogs 🐸
+
+This data-set is on the presence-absence data of Chytridiomycosis in a population of [*Lithobates clamitans*](https://en.wikipedia.org/wiki/Lithobates_clamitans)This is a binomial distribution. 1 is presence and 0 is absence
+
+```{r}
+data<-rbinom(1000,1,0.23) #your population, 10,000 individuals tota. 
+mu<-mean(data) #real population parameter
+sigma<-sd(data)
+mu
+sigma
+hist(data)
+n<-40
+```
+
+##### Example 3: grapes 🍇
+
+This dataset is on the number of wild grapes in 10,000 vines in a meadow (you can also make this wine grapes in a vineyard if you are into that).
+
+```{r}
+data<-rpois(1000,40) #your population, 10,000 individuals total. 
+mu<-mean(data) #real population parameter
+sigma<-sd(data)
+mu
+sigma
+hist(data)
+n<-40
+```
+
+##### Example 4: Beef 🐮
+
+Annual live weight (LW) meat production in 10,000 hectares (n = 10,000), each hectare represents one datapoint.
+
+```{r}
+data<-rnorm(10000, mean = 410.5, sd=60) #your population, 10,000 individuals total
+mu<-mean(data) #real population parameter
+sigma<-sd(data)
+mu
+sigma
+hist(data)
+n<-40
+```
+
+### Step 2: Write it down
+
+In your word document, write the mean for your population, write the sd for your population and paste the histogram. Answer: What does this histogram represent?
+
+#### Step 3: Take a sample
+
+This is what we are going to do: we are going to take a sample of size 40, obtain the mean, and the standard error. Then, we will take a new sample of 40, estimate the mean and standard error. And the again. We will do this 100 times. No worries, I will give you all the code.
+
+CREATE A NEW SCRIPT:
+
+Go to file \> new file \> R script and create a new script.
+
+And in the new script, do the following:
+
+1- Take the sample
+
+```{r}
+n<-40
+```
+
+```{r}
+
+library(ggplot2)
+experiment<-1:100
+means<-rep(NA,100) #For the means
+s<-rep(NA,100) #sd
+SE<-rep(NA,100) #SE
+LCI<-rep(NA,100) # Lower CI
+UCI<-rep(NA,100) # Upper CI
+inclusive<-rep(NA,100) #is the real parameter included?
+alpha<-0.05 #our alpha
+lower<-qnorm(alpha/2) #lower critical value
+upper<-qnorm(1-alpha/2) #upper critical value
+for(i in 1:100){
+sample<-sample(data,n)
+means[i]<-mean(sample)
+s[i]<-sd(sample)
+SE[i]<-s[i]/sqrt(n)
+LCI[i]<-means[i]+SE[i]*lower
+UCI[i]<-means[i]+SE[i]*upper
+if(mu<UCI[i] & mu> LCI[i]){
+  inclusive[i]<-T} else{
+    inclusive[i]<-F
+  }
+}
+
+df<-data.frame(experiment,means,s,SE,LCI,UCI,inclusive)
+
+```
+
+#### Step 4: Obtain Histogram:
+
+Now run the following
+
+```{r}
+hist(means)
+```
+
+And copy the new histogram in your word file. This is a histogram of the actual estimated means. Are the estimated means around the real mean? How does this compare to the population histogram?
+
+## Step 5: Plot:
+
+Run the following plot:
+
+```{r}
+ggplot(df, aes(x = experiment, y = means,colour=inclusive,ymin = LCI, ymax=UCI)) +
+   geom_point() +
+   geom_hline(yintercept = mu, color = "black", linetype = "longdash") +
+   scale_y_continuous(name = "", limits = c(min(df$LCI) - min(df$LCI)/10 , max(df$UCI + max(df$UCI)/10))) +
+   scale_x_continuous(limits = c(0, 100)) +
+   theme_classic()+
+  scale_color_manual(values=c("#ec280e", "#06b512"))+
+  geom_errorbar(width = 0)
+```
+
+Copy this plot in your word document and paste it.
+
+Answer: How many times did the Confidence Interval included the real value. This is a 95% confidence interval, so, it should include it 95% of the time!
+
+## Multiple simulations
+
+Run the code on step 3 followed by the plot in step 5 multiple times. Like 4 or 5 times. You should get a different result and plot each time. Write the maximum and minimum number of times in which the CI did not include the real mean. Answer: Does this make sense taking into account that we had a 95% CI?

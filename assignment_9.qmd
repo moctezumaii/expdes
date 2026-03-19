@@ -1,0 +1,375 @@
+---
+title: "Multivariate"
+format: 
+  html:
+    self-contained: true
+editor: visual
+toc: true
+execute:
+  tidy: true
+---
+
+## Last assignment
+
+It has been fun making these assignments, less fun having to grade them! This is the last assignment of the semester, and it is due by May 5. It is a *relatively* short one 😄
+
+We will be working with some biological-community data, and will be doing a PCA and an NMDS.
+
+First step, download the vegan package and load the varespec data. The dataset we will be using is included in the vegan package.
+
+Finally, use the `help` command (or `?`) to read about the dataset:
+
+```{r message=FALSE, results=F}
+library(vegan)
+data(varespec)
+?varespec
+```
+
+::: callout-important
+## Assignment question 1
+
+Shortly describe the dataset. What are the rows? What are the columns?
+
+Please note that the rows have names. This might be a bit confusing, but these names are numbers (and they are not sorted!) When we run a pca or an nmds, these "names" will be used.
+:::
+
+## Let's plot the data
+
+::: callout-important
+## Assignment question 2
+
+Look at the following plot and try to replicate it:
+
+Some tips. I recommend you read the box under the plot before you start to plot this!
+:::
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyr)
+library(ggplot2)
+library(cowplot)
+library(dplyr)
+
+library(Polychrome)
+
+varespec2<-varespec
+varespec2$site<-row.names(varespec)
+
+varespec2 <- varespec2 %>% 
+  pivot_longer(
+    cols = `Callvulg`:`Cladphyl`,
+    names_to = "Species",
+    values_to = "proportion"
+  ) %>% arrange(as.numeric(site))
+
+varespec2 <- varespec2[order(as.numeric(varespec2$site)),]
+
+varespec2$site<-factor(varespec2$site,levels = as.character(unique(as.numeric(varespec2$site))))
+#install.packages("Polychrome")
+
+P44 = createPalette(44,  c("#ff0000", "#00ff00", "#0000ff"))
+
+ggplot(varespec2, aes(fill=Species, y=proportion, x=site)) + 
+  geom_bar(position="fill", stat="identity")+
+  theme_cowplot()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  guides(fill="none")+
+  xlab("Site number") +
+  ylab("Proportion") +
+  scale_fill_manual(values=as.character(P44))
+```
+
+::: callout-tip
+## Need help?
+
+1.  The original dataset had row names. Look at the row names, they are number, but are not in order! These are the site names (we oftentimes give sites a number). We need to keep these names, but it would be probably best to have them as an extra column, rather than a name. Function `row.names()` allows you to obtain the names of a row.
+2.  We have 44 species! That is a lot!You have to come up with a color palette that will allow you to distinguish different groups.
+3.  A legend for the species is not necessary, we just want to see what sites are more similar to each other.
+4.  The original data is in `wide` format. `pivot_longer` from the `tidyr` package can help you transform it to a long format
+5.  Check <https://r-graph-gallery.com/48-grouped-barplot-with-ggplot2.html> if you need help plotting this!
+:::
+
+### PCA
+
+There are many ways to run PCA's in R, as well as many packages. The good news is that it is super easy!
+
+In this case we will run a PCA using vegan
+
+```{r}
+vare.pca <- rda(varespec)
+vare.pca
+
+```
+
+That's it! We ran our first PCA.
+
+::: callout-tip
+## Should I scale the data?
+
+You probably have seen in examples that often times people will add `scale=T` to the dataset. This is **necessary** when your data is in different scales. For example, in environmental variables temperature, humidity, cover, etc are measured in very different scales, so, using `scale=T` transforms the data and looks at z-scores or standard deviations rather than true values.
+
+In this case, it doesn't change results dramatically. You could run it like
+
+```{r}
+vare.pca.scale <- rda(varespec, scale=T)
+vare.pca.scale
+```
+:::
+
+We can plot the screeplot (plot that shows each eigenvalue, which represent the variance explained) pretty easily using the following:
+
+```{r}
+screeplot(vare.pca, type="lines")
+
+screeplot(vare.pca)
+```
+
+These plots are usually not published, but it is a good representation of the variance explained by each principal component.
+
+We can extract the eigenvalues using:
+
+```{r}
+vare.pca$CA$eig
+```
+
+::: callout-important
+## Assignment question 3
+
+Using the Eigenvalues:
+
+1- Estimate the variance explained by the first and second principal components. Essentially, eigenvalue 1 + eigenvalue 2 divided by the sum of all eigenvalues.
+
+2- Replicate one of the screeplots but instead of the eigenvalues, use the proportion of variance explained. A barplot or ineplot, but you should estimate proportion, and plot it :)
+:::
+
+Let's plot the sites in a two-dimensaional space (using PC1 and PC2):
+
+```{r}
+plot(vare.pca, display="sites")
+
+```
+
+This is showing us, which sites have biological communities that are closer to each other.
+
+::: callout-important
+## Assignment question 4
+
+Look at the PCA plot. Focus on some sites that are close to each other (e.g., 27 and 28, 10 and 9) and some sites that are pretty far apart (e.g. 5 and 10).
+
+Choose two pairs of sites that are close to each other and two pairs of sites that are far away from each other.
+
+Look at those same sites in the proportion stacked barchart that we plotted earlier in this assignment and answer: do you think the similarity of site composition is being represented by the "closeness" in the PCA plot?
+:::
+
+You can also plot the species:
+
+```{r}
+plot(vare.pca, display="species")
+```
+
+This shows species that tend to occupy similar sites
+
+Or both:
+
+```{r}
+plot(vare.pca)
+```
+
+However, the prebuilt plots are in my mind, a bit ugly. If you will be working with multivariate data, I recommend you spend sometime to make sure your plots are nice and easy to interpret!
+
+## Alternatives to vegan PCA
+
+In general, the `vegan` package is the most popular package to analyze multivariate data in R.
+
+Partially because it includes everything you need to run your analyses, while using other packages might require you to load different packages for different portions of the analysis.
+
+There are many packages that can estimate PCA's though.
+
+We can use a baseR command: `prcomp1`
+
+```{r}
+vara.pca2<-prcomp(varespec)
+summary(vara.pca2)
+```
+
+And we can get the eigenvalues (we need a :
+
+```{r}
+library(factoextra)
+
+eig.val<-get_eigenvalue(vara.pca2)
+kableExtra::kable(eig.val) #You can ignore the kable command, I just use it to make nice looking graphs
+```
+
+And the `fviz_eig` function from the `factoextra` package gives us nicer looking scree plots.
+
+```{r}
+fviz_eig(vara.pca2, col.var="blue")
+
+```
+
+And because these plots use `ggplot2` they are very easy to modify:
+
+```{r}
+a<-fviz_eig(vara.pca2, col.var="blue")
+a + theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Using this same package we can estimate and plot the square cosine (cos2) which corresponds to the quality of representation of variables. Essentially, how well each variable is represented by each PC. We do it this way:
+
+```{r}
+fviz_cos2(vara.pca2, choice = "var", axes = 1:2)
+```
+
+Wow! Essentially 4 species are the drivers of composition in this case! This is hard to read. Let's repeat it with less variables:
+
+```{r}
+fviz_cos2(vara.pca2, choice = "var", axes = 1:2, top=10)
+```
+
+Way better! And we don't really lose any information
+
+We can actually look at this for dim1 and dim2 independently:
+
+```{r}
+a<-fviz_contrib(vara.pca2, choice = "var", top=10, axes = 1)
+# Contributions of variables to PC2
+b<-fviz_contrib(vara.pca2, choice = "var", top=10, axes = 2)
+library(gridExtra)
+grid.arrange(a,b, ncol=2, top='Contribution of the variables to the first two PCs')
+```
+
+Usually, a corrplot is a great visual representation, but in this case it is not. We have 44 species and 24 dimensions, which makes the corrplot unusable:
+
+```{r}
+var <- get_pca_var(vara.pca2)
+library("corrplot")
+corrplot(var$cos2, is.corr=FALSE)
+```
+
+I am leaving the code because it might be a great analysis if you have less dimensions and less variables!
+
+Finally, we will draw a factor map. Positively correlated variables are grouped together, whereas negatively correlated variables are positioned on opposite sides of the plot origin. The distance between variables and the origin measures the quality of the variables on the factor map. Variables that are away from the origin are well represented on the factor map.
+
+```{r}
+fviz_pca_var(vara.pca2,
+             col.var = "cos2", # Color by the quality of representation
+             gradient.cols = c("darkorchid4", "gold", "darkorange"),
+             repel = TRUE
+             )
+```
+
+Again, we see the 4 species that end up driving the effects. and they are in different quadrants.
+
+::: callout-important
+## Assignment question 5
+
+Try to intrepret the last plot. As if you were describing the importance of the results in a paper.
+:::
+
+Let's now look at the site response
+
+### Site response
+
+We can do the same exact analyses at the site level:
+
+```{r}
+site <- get_pca_ind(vara.pca2)
+fviz_pca_ind(vara.pca2,
+             col.ind = "cos2", # Color by the quality of representation
+             gradient.cols = c("darkorchid4", "gold", "darkorange"),
+             repel = TRUE
+             )
+```
+
+```{r}
+fviz_contrib(vara.pca2, choice = "ind", axes = 1:2)
+```
+
+Woah! Why do you think site 9 and 10 contribute more to dimensions 1 and 2?
+
+Finally, we can do the following plot showing both sites and species:
+
+We need the package `ggfortify`
+
+```{r}
+library(ggfortify)
+autoplot(vara.pca2, loadings=TRUE, loadings.colour='darkorchid4', loadings.label=TRUE, loadings.label.size=3)+
+  theme_classic()
+
+```
+
+Nice! We are done with PCAs!
+
+There are tons of resources online if you will be working with PCA's. I do recommend reading the `vegan` documentation. I also recommend you read the following:
+
+-   <https://vegandevs.r-universe.dev/vegan/doc/intro-vegan.pdf>
+
+-   <https://vegandevs.r-universe.dev/vegan/doc/partitioning.pdf>
+
+-   <https://vegandevs.r-universe.dev/vegan/doc/diversity-vegan.pdf>
+
+-   <https://vegandevs.r-universe.dev/vegan/doc/decision-vegan.pdf>
+
+Even if not working with this package directly
+
+## NMDS
+
+Let's run a quick NMDS with the same dataset. Again, reading the vegan documentation is important in order to fully understand this. Here, as the semester is ending, I have decided to keep it very brief.
+
+To run an NMDS in vegan we do the following:
+
+```{r}
+NMDS1<-metaMDS(varespec,distance = "bray")
+NMDS1
+```
+
+Maybe the most important value here is the stress value. We had a 0.18 value, which `vegan` labels as "weak ties". For NMDS, stress is a measure of the goodness of fit, and we use the following values to make a decision on the fit:
+
+| stress value   | Goodness of fit                   |
+|----------------|-----------------------------------|
+| \>0.2          | Not good. Use a different method. |
+| \<0.2 & \>0.1  | OK. But ties are weak             |
+| \<0.1 & \>0.05 | Great                             |
+| \<0.05         | Excellent                         |
+
+We can also obtain a stressplot:
+
+```{r}
+stressplot(NMDS1)
+```
+
+In NMDS linearity is not assumed (in PCA it is!) However monotonicity is. This is a monotonic plot, as it only move up in the y axis as x increases, however it is not linear. This plot shows the relationship between the observed dissimilarity, and the ordination distance., We want this plot to have a high $R^2$ (think of it as comparison of observed and predicted, or observed and calculated).
+
+If you are wondering how stress is calculated, it is calclulating using the following equation:
+
+$$
+R^2 = 1-S^2 
+$$
+
+where $R^2$ is the non-metric fit $R^2$ while $S^2$ is stress squared.
+
+Let's plot the NMDS! First let's plot the sites:
+
+```{r}
+ordiplot(NMDS1,type="n")
+orditorp(NMDS1, display = "sites", cex = 1.1, air = 0.01)
+```
+
+::: callout-important
+## Assignment question 6
+
+Look at the NMDS plot and answer: How different are your NMDS results from the PCA ones?
+:::
+
+Finally, let's plot the species and then both plots
+
+```{r}
+ordiplot(NMDS1,type="n")
+
+orditorp(NMDS1, display = "species", cex = 0.5, air = 0.01,col="red")
+
+plot(NMDS1, type = "t")
+```
+
+Cool! I am happy to talk more about multivariate methods and about these analyses on a one to one basis if needed, but this is the end of this (your last!) assignment.

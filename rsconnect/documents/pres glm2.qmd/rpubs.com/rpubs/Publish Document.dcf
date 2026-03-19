@@ -1,0 +1,10 @@
+name: Publish Document
+title:
+username:
+account: rpubs
+server: rpubs.com
+hostUrl: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/1226477/5f37da2ca7304621bcdde92afe337ba7
+bundleId: https://api.rpubs.com/api/v1/document/1226477/5f37da2ca7304621bcdde92afe337ba7
+url: http://rpubs.com/amolina/1226477
+version: 1

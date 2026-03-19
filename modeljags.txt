@@ -1,0 +1,13 @@
+
+model {
+# Priors
+alpha ~ dunif(-100, 100)
+beta ~ dunif(-100, 100)
+sigma ~ dunif(0, 100) # May consider smaller range
+tau <- pow(sigma, -2)
+# Likelihood
+for (i in 1:n) {
+  y[i] ~ dnorm(mu[i], tau) # Response y distributed normally
+  mu[i] <- alpha + beta * x[i] # Linear predictor
+}
+}

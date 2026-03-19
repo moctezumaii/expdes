@@ -1,0 +1,257 @@
+---
+title: "Overdispersion part 1"
+format:
+  revealjs:
+    incremental: true   
+    scrollable: true
+    chalkboard: true
+server: shiny
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(car)
+library(readr)
+```
+
+## Next classes
+
+\~ 6 weeks left
+
+1.  Zero-inflated model and lienar models (lab: zero inflated and mixed effects) LONG
+2.  Git and shiny: Linear models reviews (lab: repeated measures and mixed effects)
+3.  Last four weeks: GAMs and multivariate (ordination) –\> Readings and long-ish labs
+
+**Last project**
+
+## Count data
+
+Remember the Poisson distribution?
+
+-   count data = Poisson
+
+-   But usually, Poisson is not the best distribution to test count data
+
+-   Two reasons: over-inflation and too many zeroes
+
+## Poisson distribution
+
+```{r}
+#| panel: fill
+fluidRow(
+column(8,  plotOutput(outputId = "plot2", 
+             height = "500px")),
+
+  column(4,
+numericInput("nump", "lambda", 0.1, min=0, max=50),
+numericInput("nump2", "lambda", 10, min=0, max=50),
+numericInput("nump3", "lambda", 20, min=0, max=50)))
+
+
+
+```
+
+```{r}
+#| context: server
+
+#| fig-width: 8
+#| fig-height: 5
+
+library(ggplot2)
+x2 <- seq(0, 50, by = 1)
+
+selectedDatap <- reactive({
+    c(dpois(x2, input$nump))
+  })
+selectedDatap2 <- reactive({
+    c(dpois(x2, input$nump2))
+  })
+selectedDatap3 <- reactive({
+    c(dpois(x2, input$nump3))
+  })
+
+
+
+df3 <- reactive({data.frame(y = c(selectedDatap(),selectedDatap2(),selectedDatap3()),
+                 x2 = x2,
+                 mu = factor(rep(c("lambda = 0.1", "lambda = 1", "lambda = 5"), each = length(x2)),
+                                 levels = c("lambda = 0.1", "lambda = 1", "lambda = 5")))
+  
+})
+
+output$plot2<-renderPlot({
+ggplot(data=df3(), aes(x = x2+0.5, y = y, fill = mu)) +
+  geom_col(alpha = 0.75, color = "grey", linewidth = 0.1, position = "dodge") +
+  scale_y_continuous("Probability density") +
+  scale_x_continuous("y") +
+    theme(legend.position="none")
+})
+
+```
+
+## Poisson distribution
+
+In poisson we have the following:
+
+-   $$
+    log(\lambda_i) = \beta_0 + \beta_1x_{1,i)} + ... 
+    $$
+
+-   $$
+    y_i \sim Poisson (\lambda_i)
+    $$
+
+-   $y_i$ is the response
+
+-   $\lambda_i$ is the expected value
+
+-   $\lambda_i$ is also the variance
+
+## Normal distribution (lm)
+
+-   $$
+    E[y_i] \sim \beta_0 + \beta_1x_{1,i} + ... 
+    $$
+
+-   $$
+    y_i \sim Normal(E[y_i],\sigma^2)
+    $$
+
+## Plot again
+
+```{r}
+
+#| echo: false
+#| fig-width: 8
+#| fig-height: 5
+
+fluidRow(
+column(8,  plotOutput(outputId = "plot1", 
+             height = "500px")),
+
+  column(4,
+numericInput("num", "mu1", 0.1, min=-40, max=40),
+
+numericInput("sd", "sd1", 1, min=-40, max=40),
+
+numericInput("num2", "mu2", 10, min=-40, max=40),
+numericInput("sd2", "sd2", 1, min=-40, max=40),
+
+numericInput("num3", "mu3", 10, min=-40, max=40),
+numericInput("sd3", "sd3", 10, min=-40, max=40)))
+```
+
+```{r}
+#| context: server
+
+library(ggplot2)
+
+selectedData <- reactive({
+    c(dnorm(x, input$num,input$sd))
+  })
+selectedData2 <- reactive({
+    c(dnorm(x, input$num2,input$sd2))
+  })
+selectedData3 <- reactive({
+    c(dnorm(x, input$num3,input$sd3))
+  })
+
+
+x <- seq(-50, 50, by = .1)
+df <- reactive ({data.frame(y = c(selectedData() , selectedData2(), selectedData3()),
+                 x = x,
+                 mu = factor(rep(c("mu = 0.1", "mu = 1", "mu = 3"), each = length(x)),
+                                 levels = c("mu = 0.1", "mu = 1", "mu = 3")))
+})
+
+output$plot1<- renderPlot({
+  
+ggplot(data=df(), aes(x = x, y = y, color = mu, fill=mu)) +
+  geom_col(alpha = 0.95, linewidth = 0.1, position = "dodge") +
+  scale_y_continuous("Probability density") +
+  scale_x_continuous("y") +
+  scale_color_discrete(labels = c(expression(paste(mu, "= 0.1, ", sigma, "= 1")), 
+                                 expression(paste(lambda, "= 1")), 
+                                 expression(paste(lambda, "= 3")))) +
+    scale_fill_discrete(labels = c(expression(paste(mu, "= 0.1, ", sigma, "= 1")), 
+                                 expression(paste(lambda, "= 1")), 
+                                 expression(paste(lambda, "= 3")))) +
+    theme(legend.position="none")
+  
+})
+```
+
+## Plot
+
+```{r}
+plotOutput(outputId = "plot5", height = "600px")
+```
+
+```{r}
+#| context: server
+
+  x5 <- runif(100, 0, 60)
+  ey <- 10 + 1*x5 
+  eps <- rnorm(100, 0, 3)
+  y5 <- ey + eps
+  df5 <- data.frame(x5, y5)
+  lm_fit <- lm(y5 ~ x5, data = df5)
+  
+  k <- 2.5
+  sigma <- sigma(lm_fit)
+  ab <- coef(lm_fit); a <- ab[1]; b <- ab[2]
+  
+  x5 <- seq(-k*sigma, k*sigma, length.out = 50)
+  y5 <- dnorm(x5, 0, sigma)/dnorm(0, 0, sigma) * 3
+  
+  x0 <- 5
+  y0 <- a+b*x0
+  path1 <- data.frame(x = y5 + x0, y = x5 + y0)
+  segment1 <- data.frame(x = x0, y = y0 - k*sigma, xend = x0, yend = y0 + k*sigma)
+  x0 <- 20
+  y0 <- a+b*x0 
+  path2 <- data.frame(x = y5 + x0, y = x5 + y0)
+  segment2 <- data.frame(x = x0, y = y0 - k*sigma, xend = x0, yend = y0 + k*sigma)
+  x0 <- 35
+  y0 <- a+b*x0 
+  path3 <- data.frame(x = y5 + x0, y = x5 + y0)
+  segment3 <- data.frame(x = x0, y = y0 - k*sigma, xend = x0, yend = y0 + k*sigma)
+  x0 <- 50
+  y0 <- a+b*x0 
+  path4 <- data.frame(x = y5 + x0, y = x5 + y0)
+  segment4 <- data.frame(x = x0, y = y0 - k*sigma, xend = x0, yend = y0 + k*sigma)
+
+  output$plot5<- renderPlot({
+  ggplot(df5, mapping = aes(x=x5, y=y5)) + 
+    geom_point(color="#446E9B", alpha = 0.5) + 
+    geom_smooth(method='lm', se=FALSE, color="#D47500", alpha = 0.5) + 
+    geom_path(aes(x,y), data = path1, linewidth = 1, color = "#3CB521") + 
+    geom_path(aes(x,y), data = path2, linewidth = 1, color = "#3CB521") + 
+    geom_path(aes(x,y), data = path3, linewidth = 1, color = "#3CB521") +
+    geom_path(aes(x,y), data = path4, linewidth = 1, color = "#3CB521") +
+    geom_segment(aes(x=x,y=y,xend=xend,yend=yend), data = segment1, linewidth = 0.6, 
+                 color = "#CD0200") +
+    geom_segment(aes(x=x,y=y,xend=xend,yend=yend), data = segment2, linewidth = 0.6,
+                 color = "#CD0200") +
+    geom_segment(aes(x=x,y=y,xend=xend,yend=yend), data = segment3, linewidth = 0.6,
+                 color = "#CD0200") +
+    geom_segment(aes(x=x,y=y,xend=xend,yend=yend), data = segment4, linewidth = 0.6,
+                 color = "#CD0200") +
+    theme_classic()
+  })
+```
+
+## Poisson distribution
+
+In poisson we have the following:
+
+-   $$ log(\lambda_i) = \beta_0 + \beta_1x_{1,i)} + ...  $$
+
+-   $$ y_i \sim Poisson (\lambda_i) $$
+
+-   $y_i$ is the response
+
+-   $\lambda_i$ is the expected value
+
+

@@ -1,0 +1,86 @@
+---
+title: "Factoraial and Nested Design"
+author: "Dr. Alejandro Molina Moctezuma"
+format:
+  html: 
+    embed-resources: true
+    fig_height: 4.5
+    fig_width: 4.5
+    highlight: tango
+    number_sections: true
+    toc: true
+    toc_depth: 2
+    theme: cosmo
+    fontsize: 1.1em
+    linestretch: 1.7
+knitr:
+  opts_chunk: 
+    collapse: true
+execute: 
+  warning: false
+  tidy: true
+---
+
+# Instructions
+
+In this assignment, you will run analyses for different factorial and nested designs. For each of the following scenarios, you will need to: 1. Identify the type of design (factorial, nested, etc.).
+
+2.  Explain how many factors there are and if they are fixed or random.
+
+3.  Run an anova using the `aov()` function in R.
+
+4.  Write the ANOVA equation for the model you are testing. For example, if you are testing a two-way factorial design with factors A and B, your ANOVA equation might look like this:
+
+$$ Y_{ijk} = \mu + \alpha_i + \beta_j + (\alpha \beta)_{i,j} + \epsilon_{ijk} $$
+
+Where:
+
+-   $Y_{ijk}$ is the response variable for the k-th observation in the i-th level of factor
+
+-   $\alpha$ and the j-th level of factor $beta$.
+
+-   $\mu$ is the overall mean.
+
+-   $\alpha_i$ is the effect of the i-th level of factor $\alpha$.
+
+-   $\beta_j$ is the effect of the j-th level of factor $\beta$.
+
+-   $(\alpha \beta)_{i,j}$ is the interaction effect between factors $\alpha$ and $\beta$.
+
+-   $\epsilon_{ijk}$ is the random error term.
+
+To write an equation in Quarto, you can use LaTeX syntax within double dollar signs `$$`. You can check this website: [Math in R (R Markdown/Quarto)](https://rpruim.github.io/s341/S19/from-class/MathinRmd.html) for more information on how to write mathematical equations in R Markdown and Quarto.
+
+You can also right click on any equation in any of my assignments, and select `show math as`, followed by `Tex commands` and that will show you how to write that equation in LaTeX syntax.
+
+5.  Interpret the results of your ANOVA, including the main effects and interaction effects if applicable. Discuss what the results mean in the context of the experiment you are analyzing.
+
+6.  If you find significant effects, consider conducting post-hoc tests to further explore the differences between groups. You can use functions like `TukeyHSD()` or use the `emmeans` package in R for this purpose.
+
+7.  For the models with an interaction, run them again with the interaction term removed to see how the main effects change without the interaction. Write the ANOVA equation for this new model as well.
+
+8.  Interpret the differences between the interaction model and the non-interaction model
+
+## Experiments
+
+::: {.panel-tabset style="background-color: #dcf0f2; border: 1px solid white; .tabs{         border-right: 2px solid #636363;       border-top: 2px solid #636363;       border-bottom: 2px solid #636363; }"}
+## Irrigation and Fertilizer 🥬
+
+A researcher is testing two irrigation methods (drip vs. spray) and three fertilizer types (A, B, C) on crop yield of a leafy green. Each irrigation method is randomly assigned to fields. Within each field, all three fertilizers are applied randomly to plots
+
+## Cows and Farms
+
+Two feed types (standard vs. high-protein) are randomly assigned to pens of chickens. Within each pen, cages are randomly assigned to one of two temperatures (cool vs. warm). Weight is recorded after 4 weeks. Weight is not recorded prior to the four weeks.
+
+## Plant Genotypes 🌱
+
+A plant breeder tests 4 genotypes of wheat across 4 blocks in the field. Each genotype appears once per block. Each block has a slightly different soil, as there is a gradient change in soil type. Yield is recorded at harvest.
+
+## Weight of Chickens 🐔
+
+Weights of chicks are recorded weekly for 6 weeks. Each chick is randomly assigned to one of three diets. Chick ID is recorded.
+
+## Soil Type and Watering Frequency 🎑
+
+A greenhouse experiment tests the effect of **soil type** (clay, loam, sand) and **watering frequency** (daily vs. every 3 days) on seedling height. 6 replicates of each treatment combination are assigned randomly to individual pots.
+:::

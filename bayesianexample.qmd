@@ -1,0 +1,265 @@
+---
+title: "Example"
+format:
+  html:
+    embed-resources: true
+---
+
+## Jags code
+
+The code has to happen in different steps
+
+Step 1: Bundle data:
+
+```{r echo=F, results='hide'}
+set.seed(5)
+n <- 16 # Number of years
+a <- 40 # Intercept
+b <- -0.5 # Slope
+sigma2 <- 25 # Residual variance
+# Save true values for later comparisons
+truth <- c(alpha = a, beta = b, sigma = sqrt(sigma2))
+
+# See Fig. 5–3 (left) for a variant of this plot
+x <- 1:16 # Values of covariate year
+
+y <- a + b*x + rnorm(n, mean = 0, sd = 5) # Assemble data set
+
+model <- lm(y ~ x)
+summary(model)
+
+lm_est <- c(coef(model), sigma = sigma(model))
+```
+
+```{r}
+dataList <- list(y = y, x = x, n = n)
+
+```
+
+```{r}
+library(jagsUI)
+```
+
+Step 2: Write model file:
+
+```{r}
+cat(file = "modeljags.txt", "
+model {
+# Priors
+alpha ~ dunif(-100, 100)
+beta ~ dunif(-100, 100)
+sigma ~ dunif(0, 100) # May consider smaller range
+tau <- pow(sigma, -2)
+# Likelihood
+for (i in 1:n) {
+  y[i] ~ dnorm(mu[i], tau) # Response y distributed normally
+  mu[i] <- alpha + beta * x[i] # Linear predictor
+}
+}
+")
+```
+
+Define initial values, and run:
+
+```{r}
+
+# Function to generate starting values
+inits <- function(){ list(alpha = rnorm(1),
+beta = rnorm(1), sigma = rlnorm(1))}
+# Note lognormal init for sigma
+# to avoid values < 0
+# Parameters to estimate
+params <- c("alpha","beta", "sigma")
+# MCMC settings 
+na <- 1000 ; ni <- 6000 ; nb <- 1000 ; nc <- 4 ; nt <- 1
+# Call JAGS (ART <1 min), check convergence and summarize posteriors
+modeljags <- jags(dataList, inits, params, "modeljags.txt", n.iter = ni, n.burnin = nb,
+n.chains = nc, n.thin = nt, n.adapt = na, parallel = TRUE)
+jagsUI::traceplot(modeljags) # not shown
+```
+
+Obrain values and compare them
+
+```{r}
+print(modeljags, 2)
+
+
+```
+
+```{r}
+# Save JAGS estimates
+jags_est <- modeljags$summary[1:3, 1]
+jags_est
+
+
+```
+
+```{r}
+# Compare results of lm() and JAGS
+comp <- cbind(truth = truth, lm = lm_est, JAGS = jags_est)
+print(comp, 4)
+```
+
+## STAN
+
+1.  Bundle data:
+
+```{r}
+dataList <- list(y = y, x = x, n = n)
+```
+
+2.  Write the model in STAN
+
+```{r}
+library(rstan)
+
+# Write text file with model description in Stan language
+cat(file = "model.stan", # This line is R code
+"data { // This is the first line of Stan code
+  int <lower = 0> n; // Define the format of all data
+  vector[n] y; //. . . including the dimension of vectors
+  vector[n] x; //
+}
+parameters { // Define format for all parameters
+  real alpha;
+  real beta;
+  real <lower = 0> sigma; // sigma (sd) cannot be negative
+}
+transformed parameters {
+  vector[n] mu;
+  for (i in 1:n){
+    mu[i] = alpha + beta * x[i]; // Calculate linear predictor
+  }
+}
+model {
+  // Priors
+  alpha ~ normal(0, 100);
+  beta ~ normal(0, 100);
+  sigma ~ cauchy(0, 10);
+  // Likelihood (could be vectorized to increase speed)
+  for (i in 1:n){
+    y[i] ~ normal(mu[i], sigma);
+  }
+}
+
+" )
+
+```
+
+Set settings
+
+```{r}
+# HMC settings
+ni <- 3000 ; nb <- 1000 ; nc <- 4 ; nt <- 1
+# Call STAN (ART 30/3 sec), assess convergence, save estimates
+
+modelstan <- stan(file = "model.stan", data = dataList,
+chains = nc, iter = ni, warmup = nb, thin = nt)
+rstan::traceplot(modelstan) # not shown
+print(modelstan, dig = 2) # not shown
+stan_est <- summary(modelstan)$summary[1:3,1]
+```
+
+```{r}
+comp <- cbind(truth = truth, lm = lm_est, JAGS = jags_est, Stan = stan_est)
+print(comp, 4)
+```
+
+## Example with males and females (change values slightly)
+
+```{r}
+
+set.seed(5)
+n <- 16 # Number of years
+a <- 35 # Intercept (females = 0)
+b <- -0.4 # Slope
+b2<- 10 #difference between males and females intercept
+b3<- -0.2 #difference between males and females slope
+sigma2 <- 12 # Residual variance
+# Save true values for later comparisons
+truth2 <- c(alpha = a, beta = b, beta2 = b2, beta3=b3, sigma = sqrt(sigma2))
+
+# See Fig. 5–3 (left) for a variant of this plot
+x <- c(1:16,1:16) # Values of covariate year
+sex<-(rep(0:1,each=16))
+
+
+y <- a + b*x + b2*sex+ b3*x*sex +rnorm(n*2, mean = 0, sd = sqrt(sigma2))# Assemble data set
+
+
+model <- lm(y ~ x*as.factor(sex))
+summary(model)
+
+lm_est <- c(coef(model), sigma = sigma(model))
+```
+
+```{r}
+library(ggplot2)
+
+df<-data.frame(x=x+1989,y=y,sex=as.factor(sex))
+ggplot(df,aes(x=x+1989,y=y,col=as.factor(sex)))+
+  geom_point(size=1.5)+
+  ylab("Prop. occupied (%)")+
+  xlab("Year")+theme_classic()
+
+
+```
+
+## Model
+
+
+```{r}
+library(rstan)
+dataList <- list(y = y, x = x, n = n*2, x2=sex)
+
+# Write text file with model description in Stan language
+cat(file = "model.stan", # This line is R code
+"data { // This is the first line of Stan code
+  int <lower = 0> n; // Define the format of all data
+  vector[n] y; //. . . including the dimension of vectors
+  vector[n] x; //
+  array[n] int<lower=0, upper=1> x2;
+}
+parameters { // Define format for all parameters
+  real alpha;
+  real beta;
+  real beta2;
+  real beta3;
+  real <lower = 0> sigma; // sigma (sd) cannot be negative
+}
+transformed parameters {
+  vector[n] mu;
+  for (i in 1:n){
+    mu[i] = alpha + beta * x[i] + beta2 * x2[i] + beta3 * x[i] * x2[i] ; // Calculate linear predictor
+  }
+}
+model {
+  // Priors
+  alpha ~ normal(0, 100);
+  beta ~ normal(0, 100);
+  beta2 ~ normal(0, 100);
+  beta3 ~ normal(0, 100);
+  sigma ~ cauchy(0, 10);
+  // Likelihood (could be vectorized to increase speed)
+  for (i in 1:n){
+    y[i] ~ normal(mu[i], sigma);
+  }
+}
+
+" )
+
+```
+
+```{r}
+# HMC settings
+ni <- 3000 ; nb <- 1000 ; nc <- 4 ; nt <- 1
+# Call STAN (ART 30/3 sec), assess convergence, save estimates
+
+modelstan <- stan(file = "model.stan", data = dataList,
+chains = nc, iter = ni, warmup = nb, thin = nt)
+rstan::traceplot(modelstan) # not shown
+print(modelstan, dig = 2) # not shown
+stan_est <- summary(modelstan)$summary[1:5,1]
+stan_est
+
+```

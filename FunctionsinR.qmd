@@ -1,0 +1,204 @@
+---
+title: "Functions"
+format: 
+  html:
+    self-contained: true
+---
+
+# Writing scripts and functions
+
+<div>
+
+## Create a script! 📜
+
+It is usually better to create functions (at least initially) in a script rather than a Quarto document.
+
+Go to file \> new \> new file \> R script
+
+Do not do this in a Quarto document
+
+</div>
+
+So far we have been using Quarto to turn in our assignments. Quarto (and RMarkdown) are great for reports, to present code, and sometimes to have a nice, well commented analysis.
+
+However, more often than not, when working on our own code we write scripts in the console. That's what we will do in today's activity.
+
+## Functions
+
+So far, we have been using "pre-built" functions. Functions that come in the R base package, and functions that come in some packages we run. Usually the functions look the following way:
+
+$$
+\underbrace{lm}_{function}\underbrace{(formula, data) }_{input}
+$$
+
+Good news! We can create our own functions. This can be super helpful, for things we run over and over again. It is also generally better to *soft code* than to *hard code*. This allows us to do that. We can make a function that will run a predetermined script. Here is an example of a function I just made. You can copy and paste it in your r source code window and run it.
+
+```{r}
+plus10<-function(n){
+  n<-n+10
+  return(n)
+}
+
+plus10(7)
+
+plus10(20)
+```
+
+Can you guess what this function does?
+
+$$
+\underbrace{plus10}_{\text{name of function}} <- function\underbrace{(n)}_{input}\text{\{} 
+$$
+
+$$
+\underbrace{n<-n+10}_{code}
+$$
+
+$$
+\underbrace{return(n)}_{\text{output}}\}
+$$
+
+Here is another function:
+
+```{r}
+#| eval: false
+
+lambplot<- function(lambda1, lambda2, lambda3){
+  
+  
+    x2 <- seq(0,qpois(0.99, max(c(lambda1,lambda2,lambda3)))+2, by = 1)
+    
+   selectedDatap <-c(dpois(x2, lambda1))
+  
+  selectedDatap2 <- c(dpois(x2, lambda2))
+ 
+  selectedDatap3 <- c(dpois(x2, lambda3))
+ 
+
+  
+ df<- data.frame(y = c(selectedDatap,selectedDatap2,selectedDatap3),
+                            x2 = x2,
+                            lambda = factor(rep(c(paste("lambda = ", lambda1), paste("lambda = ", lambda2), paste("lambda = ", lambda3)), each = length(x2)),
+                                        levels = c(paste("lambda = ", lambda1), paste("lambda = ", lambda2), paste("lambda = ", lambda3))))
+  
+
+
+
+ aplot<- ggplot(data=df, aes(x = x2+0.5, y = y, fill = lambda)) +
+    geom_col(alpha = 0.75, color = "grey", linewidth = 0.1, position = "dodge") +
+    scale_y_continuous("Probability density") +
+    scale_x_continuous("y") +
+   theme_classic()
+    return(list(aplot,paste("your selections were",lambda1, lambda2, "and", lambda3)))    
+
+  }
+```
+
+You can copy and paste it, and try to guess what it does.
+
+Try to run it with values of 1, 5, and 10. Once you understand what it does, let's move on.
+
+## Tasks
+
+Now you have two tasks. These are just for class time. You can choose to do any or both
+
+CREATE THESE TASKS IN AN R-SCRIPT. NOT A QUARTO DOCUMENT!!!
+
+### TASK 1 🖊️
+
+#### Goal
+
+Write a function that simulates data for a linear relationship, fits a simple linear model to the data, and plots the results.
+
+#### Description
+
+Essentially, you will run the function with some inputs, and the output will be 1) a scatter plot with a line (showing the expected values; also known as trendline) with confidence interval, and 2) the model summary output. Let's make it simple and have a simple linear model with a single continuous variable as the explanatory.
+
+#### Parts of the function:
+
+##### Inputs (your function must take these as arguments):
+
+-   `n`: number of observations (sample size)
+
+-   `int`: intercept (β₀)
+
+-   `slope`: slope (β₁)
+
+-   `variance`: amount of random noise/variation around the line
+
+##### Simulation setup:
+
+-   Choose a continuous explanatory variable (x) that makes sense in your study system.
+
+-   Simulate the x values (based on n) — a normal or uniform distribution usually works well.
+
+-   Generate the response variable (y) using the linear equation: $$y_i = \beta_0 + \beta_1 x_i + \epsilon_i $$
+
+-   The random error should come from a normal distribution with the variance you specify.The rnorm function asks for SD, not variance!
+
+##### Model fitting and prediction:
+
+-   Store the new data in a data frame (should have x and observed y)
+
+-   Fit a simple linear model (`lm`) using your simulated data
+
+-   Save the model summary
+
+-   Use the `predict()` function to estimate the predicted values (aka trendline).
+
+-   Use `interval = "prediction"` in the prediction, so you get confidence intervals around your estimates.
+
+##### Plot:
+
+-   Make a scatterplot of your data with the predicted line and confidence interval.
+
+<!-- -->
+
+-   Use `ggplot2` or base R (I recommend `ggplot2`
+
+##### Output:
+
+After running your function, the output should `return()` a plot and a model summary.
+
+##### Make it complex!
+
+If you finish this function, you can make it more complex. Allow users to also add a categorical variable, the function should work whether the user inputs a categorical variable or not.
+
+Let users choose whether the effect is **additive** or **interactive**. Make sure the function still works even if no group is provided — in that case, it should behave like your simpler version.
+
+### TASK 2 ✏️
+
+#### Goal
+
+Simulate and compare two groups with different types of count data distributions:
+
+-   One group follows a Poisson distribution
+
+-   The other follows a Negative Binomial distribution
+
+#### Steps:
+
+##### 1. Create a function
+
+-   Simulates count data for two groups
+
+-   Group 1 follows a **Poisson distribution**
+
+-   Group 2 follows a **Negative Binomial distribution**
+
+The following code should help you simulate a negative binomial distribution
+
+```{r}
+#| eval: false
+
+dnbinom(x=0:50,size=,mu=)
+
+```
+
+-   `mu` = the mean (expected value)
+
+-   `size` = the dispersion parameter ($\theta$), which controls the variance.
+
+##### 2. Visualize the two distributions
+
+Create a plot that shows the frequency or probability of different count values for each group. You might use `geom_bar()` or `geom_line()` depending on your preference

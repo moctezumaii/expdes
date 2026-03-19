@@ -1,0 +1,15 @@
+name: zeroinflation1
+title: zeroinflation1
+username: molinamoctezumalab
+account: molinamoctezumalab
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 13108746
+bundleId: 9260332
+url: https://molinamoctezumalab.shinyapps.io/zeroinflation1/
+version: 1
+quarto_version: 1.4.555
+quarto_engines: knitr
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: .RData|_quarto.yml|Assignment 3 dipika.qmd|assignment 3.html|assignment 3.qmd|assignment 3_kos.qmd|assignment 6.html|assignment 6.qmd|Assignment1_K.qmd|assignment2.html|assignment2.qmd|assignment2_snr200.html|assignment2_snr200.qmd|assignment200.pdf|Assignment3_mel.qmd|Assignment3FWF693_Rovery.qmd|assignment4.html|assignment4.qmd|assignment4_Alec.html|assignment4_Alec.qmd|assignment5.html|assignment5.qmd|ButterflyData.csv|codeassignment4.R|codecassidy.R|codeforslides.R|crabs.csv|Crabs.txt|drug_Z.csv|fig.jpg|foodav.csv|FWF693.qmd|FWF693_Assignment1.html|FWF693_Assignment1.qmd|FWF693_W1_notes.html|FWF693_W1_notes.qmd|glm-part-2.rmarkdown|glm part 2.html|glm part 2.qmd|glm_part_2.html|glm_part_2.qmd|glmm models answers.html|glmm models answers.qmd|grasslanddata.csv|JKassignment 3.qmd|KPetersonassignment 3.qmd|MixedeffectsmodelsandextensionsinecologywithR.pdf|mousedata.csv|parasitecod.csv|parasitecod2.csv|pres glm2.html|pres glm2.qmd|presentation GLM.html|presentation GLM.qmd|rapidcity.csv|RIKZ.txt|teporingos2pops.csv|teporingosnew.csv|trees.csv|tunadata.csv|welldata.csv|zero inflation.html|zeroinflation2.html|zeroinflation2.qmd|_extensions|assignment2_snr200_files|glm-part-2_files|glm part 2_files|glm_part_2_files|images|pres-glm2_files|pres glm2_files|presentation-GLM_files|presentation GLM_files|zero-inflation_files|zero inflation_files|zeroinflation2_files

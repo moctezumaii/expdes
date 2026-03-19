@@ -1,0 +1,451 @@
+---
+title: "Assignment module 6"
+subtitle: "University of Tennessee - AGNR220/SNR220"
+format: 
+  html:
+    embed-resources: true
+editor: visual
+---
+
+```{r}
+#| include: false
+knit_print.data.frame = function(x, ...) {
+  res = paste(c("", "", 
+                knitr::kable(x, digits = 2) |> 
+                  kableExtra::kable_styling()), collapse = "\n")
+  knitr::asis_output(res)
+}
+
+registerS3method(
+  "knit_print", "data.frame", knit_print.data.frame,
+  envir = asNamespace("knitr")
+)
+
+```
+
+------------------------------------------------------------------------
+
+Note to **VOLCORE** reviewers
+
+These assignments will be distributed to students in Canvas on an html file and will be made available online. This allows students to copy and paste the code when necessary. They may include interactive applets.
+
+This assignment (the way it will be made available to students) is available at: [rpubs.com/amolina/assignmentagnr220](rpubs.com/amolina/assignmentagnr220)
+
+This PDF was created to submit for the Volcore review process
+
+------------------------------------------------------------------------
+
+What you need to complete this assignment:
+
+`R` and `RStudio` 💻\
+`Excel` 💻\
+`Calculator`
+
+# Objective of this assignment
+
+### 1. Learning to select tests, run them and make recommendations
+
+In this assignment you will be presented with real-world problems related to natural resources management. So far in class we have been presented with a management or research problem, and we have been working together on the following steps:
+
+-   Step 1: State the Null Hypothesis.
+
+-   Step 2: State the Alternative Hypothesis.
+
+-   Step 3: Set α
+
+-   Step 4: Select and calculate a test statistic.
+
+-   Step 5: Construct Acceptance / Rejection regions. ...
+
+-   Step 6: Based on steps 4 and 5, draw a conclusion about H0.
+
+-   Step 7. **Most important step:** Make a management recommendation based on your finding!
+
+In this assignment, we are changing things a bit. You will be approached by a state agency that manages agricultural and natural resources. They will have a research or management question, and then you will be tasked with coming up with the seven steps by yourself. **Importantly**, you will be tasked with identifying the correct test statistic and running it.
+
+You can do the test calculations by hand or on excel. If you use excel, you need to submit the file and **show your work**. That means doing it step by step, and using equations.
+
+::: callout-warning
+## Be careful about your recommendations!
+
+Remember, there is always a probability of making a type 1 or type 2 error. Use the results of the test to inform your recommendation, but always take that into account!
+:::
+
+### 2. t-tests in R
+
+Last assignment you were introduced to program `R`. While it seemed challenging, it will start becoming easier for you to use. It was challenging to load your data and obtain simple means, medians and standard deviations! Something you could have easily done in `excel` in a portion of the time. As you get more proficient in `R` you will be able to do these tasks in no time.
+
+Today you will see that we can run a `t-test` using `R` and it takes only a couple of minutes!
+
+::: callout-warning
+## Be careful with R!
+
+While `R` can be super useful, it can also be dangerous. Here are a couple of reasons why:
+
+1.  We can run tests that we do not understand! How can we interpret the results, and make a good recommendation or decision if we do not understand what a test is doing? Remember! The decisions we make or recommendations w give can have a big impact.
+2.  We can make mistakes and not realize. `R` will run an incorrect test, will run a test with the wrong data put in it, and oftentimes will run a different test than the one we intended. `R` just follow our directions. But it is easy to makle mistakes, so be very careful, and always report or publish your code. That way someone else can can check you code
+:::
+
+------------------------------------------------------------------------
+
+{{< pagebreak >}}
+
+# Section 1. Milking cows 🐄
+
+A dairy farm 🐮 in Wisconsin has purchased a new dietary supplement that claims to increase the milk production. The farm has 950 cows, and are giving the supplement to half of them.
+
+After a while, they decide to measure the amount of milk production in 40 cows taking the supplement, and in 40 cows that are not taking the supplement.
+
+Please download the dataset from `Canvas` and open it on `Excel` . Check the dataset, it should look something like this:
+
+```         
+{{< pagebreak >}}
+```
+
+```{r}
+#| echo: false
+cowID<-as.character(1:80)
+group<-rep(c("Control","Supplement"), each=40)
+milk<-c(rnorm(40,24.5,2.2),rnorm(40,27.5,3))
+df<-data.frame(cowID,group,milk)
+head(df)
+
+
+```
+
+`cowID` is a unique identifier for each cow.\
+`group` has two options: control and supplement.\
+`milk` is the amount in liters that a cow produced the day of sampling.\
+With that data you are tasked with answering the assignment question 1
+
+::: callout-important
+## Assignment Question 1 🐮
+
+1.  Use the null hypothesis testing steps.
+2.  Report each step
+3.  **Show your work!** You can calculate the test statistic either by hand or using `excel` If you use `excel` remember to do it step by step and show your work
+
+**After finishing those points write a short report (1 paragraph) to the farm owner with your recommendation. Should they adopt and buy this supplement?**
+:::
+
+#### Section 1.2 Take other information into account
+
+I withheld some information from you. You made a recommendation on whether the farm should adopt this supplement. You made this recommendation based on the evidence of whether this supplement increases milk production, but now, I will give you some more information (and another question!).
+
+::: callout-important
+## Assignment Question 2
+
+New information:
+
+-   The supplement costs \$30.00 for 1,000 g.
+
+-   Each cow needs to take 100 g. each day
+
+-   The farm sells each liter of raw milk to a processing facility at \$1.00
+
+Does this new information changes your recommendation?
+
+**Write a new report to the owner. Include the potential earnings (or losses) of investing in this supplement**
+:::
+
+Now, in Natural Resources and Agriculture, these statistical analyses are great for making **inferences** and **informing** decisions. But those decisions often times require nuance and information!
+
+::: callout-tip
+## Think about it 🧠
+
+Why can some information about our system (animal, plant, or resource we are studying) affect the decisions we make. **Why** don't we focus solely on the statistical test?
+:::
+
+------------------------------------------------------------------------
+
+{{< pagebreak >}}
+
+# Section 2. Teporingos 🐇
+
+The [teporingos](https://en.wikipedia.org/wiki/Volcano_rabbit) (also known as Volcano Rabbits) are one of the smallest rabbits in the world. The rabbit is native to four volcanoes near Mexico City.
+
+![Volcano rabbit or Teporingo or Zacatuche (Romerolagus diazi) - Chapultepec Zoo - Mexico. Used with permission. Author: Jose Luiz Bernardes. [Creative Commons](https://creativecommons.org/licenses/by-sa/4.0/)](images/clipboard-3486627244.png)
+
+You have set traps, and captured individuals from two populations (two of the volcanoes). You boss asks if the individuals from one of the volcanoes (Popocatepetl) are **smaller** than those from the Pelado Volcano . Download the `teporingos.csv` data set and answer the questions.
+
+Dataset includes:
+
+`mass` is the individuals weight in grams\
+`population` has two options for two volcanoes: Popocatepetl and Pelado
+
+::: callout-important
+## Assignment Question 3.1 🐰
+
+Using the Null Hypothesis Statistical Test (NHST) steps learned in class, write a short report explaining to your boss whether the Popocatepetl individuals are smaller than those from Pelado
+
+Also, let me know what statistical test you used and why
+:::
+
+Finally, you have been asked with solving one more problem. The Mexico City zoo has a group of Teporingos that are all born in captivity, but their strain is originally from a population in the Iztaccihuatl volcano. They are wondering if the mass of the Teporingos in captivity is different from the mean mass of individuals fro Iztaccihuatl.
+
+Unfortunately, you do not have data on that population. But a literature search shows that the mean mass in that population is 56.8 grams. Perfect! You also have a sample of 32 individuals from the zoo, and their masses. Donwnload the `teporingoszoo.csv` file and answer
+
+::: callout-important
+## Assignment Question 4 🐰
+
+Write a short report explaining whether the captivity individuals are different in size than the wild population
+:::
+
+------------------------------------------------------------------------
+
+{{< pagebreak >}}
+
+# Section three: One sample T-test in R
+
+#### How to find critical values in R
+
+We can find the critical values in R. Take for example the normal distribution.
+
+Take for example the following plot (made entirely in R:
+
+```{r echo=F}
+#| echo: false
+# If you are looking at the code on quarto, this code IS NOT IMPORTANT
+# for you to understand. The figure is what matters
+
+
+x<-seq(-5,5,length.out=1000)
+op <- par(mai=c(0.8, 0.2, 0.2, 0.2))
+curve(dnorm(x), -4, 4, xlab="z-value (normal curve) or standard deviation", ylab="", yaxt="n",
+      ylim=c(0,0.4),lwd=2,col="salmon",
+      frame=FALSE , main="Normal distribution", cex.main=1.5)
+xs1 <- seq(qnorm(.025), -4, by=-0.1)
+ys1 <- dnorm(xs1)
+xs2 <- seq(qnorm(.975), 4, by=0.1)
+ys2 <- dnorm(xs2)
+polygon(c(xs1, rev(xs1)), c(rep(0, length(xs1)), rev(ys1)), col="salmon")
+polygon(c(xs2, rev(xs2)), c(rep(0, length(xs2)), rev(ys2)), col="salmon")
+
+text(xs1[1], dnorm(0)/1.5, "critical value\nz=-1.96", pos=3)
+text(xs2[1], dnorm(0)/1.5, "critical value\nz=1.96", pos=3)
+arrows(xs1[1], dnorm(0)/1.5, xs1[1], ys1[1], length=0.1)
+arrows(xs2[1], dnorm(0)/1.5, xs2[1], ys2[1], length=0.1)
+text(xs1[1]-1.25, ys1[1]+0.005, "2.5%\n of the distribution", pos=3)
+text(xs2[1]+1.25, ys1[1]+0.005, "2.5%\n of the distribution", pos=3)
+text(0, ys1[1]+0.005, "95%\n of the distribution", pos=3)
+
+par(op)
+```
+
+It shows us the normal distribution and the z-values that give us the probabilities on left tail of the distribution and on the right tail of the distribution.
+
+We can obtain these values using:
+
+```{r}
+qnorm(0.025)
+qnorm(0.975)
+```
+
+We can also obtain the probabilities for certain critical values:
+
+```{r}
+pnorm(1.96)
+pnorm(-1.96)
+```
+
+This is clearly faster than looking at tables!
+
+We can also run t-tests in a variety of ways. In this example, I will show you two ways:
+
+#### Section 3.2 Lab mouse 🐭
+
+The Jackson Laboratory (Bar Harbor, ME) shipped you some lab mice 🐁 from the C57BL/6J strain. You chose this specific strain because their mean mass at 21 weeks is 20.2 grams, which is important for your experiments. However, you suspect your mice set might have a different weight, so, you take a random sample of 21 individuals to check.
+
+Download the "mousedata.csv" file and load it in an object named mousedata and inspect it.
+
+I will teach you how to run the t-test in R. However, it is up to you to make sure you are following the NHST steps when replicating this on your computer!
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+library(ggplot2)
+
+```
+
+Let's look at the data:
+
+```{r}
+mousedata<-read.csv("mousedata.csv")
+mousedata<-mousedata$x
+df1<-data.frame(mousedata,mouse="mouse")
+ggplot(data=df1,aes(x=mouse,y=mousedata))+
+  geom_violin(fill=gray(0.7,0.2),color="black")+
+  geom_boxplot(fill=gray(0.7,0.2),color="black",width=0.1)+
+  geom_point(size=2,col=gray(0.5,0.5))+
+   theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))+
+  ylab("mass (g)")+
+  xlab("")
+
+```
+
+The relevant hypotheses would be:
+
+-   $$
+    Ho : \mu_1 = 20.2
+    $$
+
+-   $$
+    Ha : \mu_1 \neq 20.2$$
+
+We will be doing a t-test. Remember, in a t-test we are essentially estimating the probability of observing a result as (or more) extreme as what we observed given that Ho was true. Essentially, if the actual mean of your mice is 20.2-g, what are the chances of obtaining the sample you did. The further your sample mean is from 20.2, the lower the chances of observing that result.
+
+We will also estimate a "critical value" that corresponds to an $\alpha$ of 0.05.
+
+We cannot use 1.96 because our sample is small (and we are doing a t-test). So we use the student's t!
+
+We will use the following code to obtain our critical value:
+
+```{r}
+alpha<-0.05
+qt(c(alpha/2, 1-alpha/2), df=21-1)
+```
+
+This looks a bit different. Remember? We need degrees of freedom to obtain our critical value in this distribution
+
+Our degrees of freedom are n-1. And our critical values are -2.08 and 2.08.
+
+Essentially, our critical values show the following:
+
+```{r echo=F}
+
+op <- par(mai=c(0.8, 0.2, 0.2, 0.2))
+curve(dt(x, df=99), -4, 4, xlab="t-value", ylab="", yaxt="n",
+      ylim=c(0,0.4),lwd=2,col="salmon",
+      frame=FALSE , main="t distribution with df=20", cex.main=1.5)
+xs1 <- seq(qt(.025, df=20), -4, by=-0.1)
+ys1 <- dt(xs1, df=99)
+xs2 <- seq(qt(.975, df=20), 4, by=0.1)
+ys2 <- dt(xs2, df=99)
+polygon(c(xs1, rev(xs1)), c(rep(0, length(xs1)), rev(ys1)), col="salmon")
+polygon(c(xs2, rev(xs2)), c(rep(0, length(xs2)), rev(ys2)), col="salmon")
+#text(xs1[1], dt(0,18)/1.5, "t=-2.10\np=0.05", pos=3)
+#text(xs2[1], dt(0,18)/1.5, "t=2.10\np=0.05", pos=3)
+text(xs1[1], dt(0,99)/1.5, "critical value\nt=-2.08", pos=3)
+text(xs2[1], dt(0,99)/1.5, "critical value\nt=2.08", pos=3)
+arrows(xs1[1], dt(0,99)/1.5, xs1[1], ys1[1], length=0.1)
+arrows(xs2[1], dt(0,99)/1.5, xs2[1], ys2[1], length=0.1)
+text(xs1[1]-1.25, ys1[1]+0.005, "2.5%\n of the distribution", pos=3)
+text(xs2[1]+1.25, ys1[1]+0.005, "2.5%\n of the distribution", pos=3)
+text(0, ys1[1]+0.005, "95%\n of the distribution", pos=3)
+#text(-3, dt(0,18), "t=-3\np=0.0038", pos=3)
+#text(3, dt(0,18), "t=3\np=0.0038", pos=3)
+#text(-3, dt(0,18), "t=-3", pos=3)
+#text(3, dt(0,18), "t=3", pos=3)
+#arrows(-3, dt(0,18), -3, dt(-3,18), length=0.1)
+#arrows(3, dt(0,18), 3, dt(3,18), length=0.1)
+par(op)
+```
+
+This is the t-distribution for our example.
+
+##### Traditional Way
+
+We can estimate the actual t-statistic using an equation:
+
+$$
+t = \frac{\bar{y} - \mu_0}{\frac{s}{\sqrt{n}}} \ \ \ \ \ \text{where} \ \ \ \ \ \frac{s}{\sqrt{n}} = \frac{\sqrt{\frac{1}{n-1}\sum^n_{i=1}(y_i - \bar{y})^2}}{\sqrt{n}}
+$$
+
+Let's do this. It looks super complicated, but R is doing all the heavy lifting.
+
+1- Obtain the mean of the mouse mass
+
+```{r}
+y_bar<-mean(mousedata)
+```
+
+2- Obtain the standard error
+
+```{r}
+se_y <- sd(mousedata)/sqrt(length(mousedata))
+```
+
+3- Calculate t statistic
+
+```{r}
+t_stat <- (y_bar - 21)/se_y
+t_stat
+```
+
+And remember the critical values:
+
+```{r}
+alpha<-0.05
+qt(c(alpha/2, 1-alpha/2), df=21-1)
+```
+
+::: callout-important
+## Assignment Question 5 🐁
+
+Based on these results, do you reject or fail to reject the null hypothesis?
+:::
+
+#### Using R built in function
+
+```{r}
+t.test(mousedata,mu=20.2)
+```
+
+::: callout-important
+## Assignment Question 6 🐁
+
+Interpret the output you got from `R`
+
+Where the results the same?
+:::
+
+------------------------------------------------------------------------
+
+{{< pagebreak >}}
+
+# 🧠 Critical Thinking Question: Tuna 🐟
+
+First off, download the file named tunadata and save it:
+
+```{r}
+tunadata<-read.csv("tunadata.csv")
+head(tunadata)
+```
+
+Here we have data of wild caught tuna that is 15 years old🐟. We have measured the "size" (total length (cm) of the tuna, and recorded whether they are healthy, or they are infected by a parasite that you suspect affects growth.
+
+Let's plot the data:
+
+```{r}
+ggplot(data = tunadata, aes(x = status, y = growth)) + 
+  geom_boxplot(fill=gray(0.7,0.25),color="black",width=0.1) +
+  geom_violin(fill=gray(0.9,0.1),color="black")+
+ theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))+
+  geom_point(aes(color = status), size = 5, alpha = 0.5)+
+  scale_color_manual(values=c("#57825a","#dd2e46"))
+```
+
+And run a 2-sample t-test:
+
+```{r}
+t.test(growth ~ status, data = tunadata, 
+       var.equal = T , paired = FALSE, 
+       alternative = )
+```
+
+::: callout-important
+## Assignment Question 7 🐁
+
+1.  While I ran the t-test, I did not follow all the steps of NHST. Report the results using those steps.
+2.  The test shows we fail to reject the null hypothesis. This is troublesome, because you did some experiments, and found that the parasite affects growth in a very meaningful way, and it also can kill individuals, particularly weaker ones. Think 🧠... why did our experiment failed to see this effect?
+:::
+
+Total points: 30. Submit to Canvas.
+
+Send any questions to your assigned TA or to amolina6\@utk.edu
+
+------------------------------------------------------------------------

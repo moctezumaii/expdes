@@ -1,0 +1,102 @@
+---
+title: "Homework 2"
+author: "Hayden Love"
+format: html
+editor: visual
+---
+
+```{r}
+#data<-read.csv("C:/users/Hayden Scott Love/Downloads/ButterflyData.csv")
+data<-read.csv("ButterflyData.csv")
+```
+
+```{r}
+dataMonarch<-data[data$Species=="Monarch",]
+dataViceroy<-data[data$Species=="Viceroy",]
+dataQueen<-data[data$Species=="Queen",]
+```
+
+```{r}
+mean(dataMonarch$ForewingArea)
+```
+
+```{r}
+mean(dataViceroy$ForewingArea)
+```
+
+```{r}
+mean(dataQueen$ForewingArea)
+```
+
+```{r}
+median(dataQueen$ForewingArea)
+```
+
+```{r}
+median(dataViceroy$ForewingArea)
+```
+
+```{r}
+median(dataMonarch$ForewingArea)
+```
+
+```{r}
+sd(dataMonarch$ForewingArea)
+```
+
+```{r}
+sd(dataViceroy$ForewingArea)
+```
+
+```{r}
+sd(dataQueen$ForewingArea)
+```
+
+```{r}
+var(dataMonarch$ForewingArea)
+```
+
+```{r}
+var(dataViceroy$ForewingArea)
+```
+
+```{r}
+var(dataQueen$ForewingArea)
+```
+
+```{r}
+se = function(x){
+  return(sd(x)/sqrt(length(x)))
+}
+  
+```
+
+```{r}
+se(dataMonarch$ForewingArea)
+```
+
+```{r}
+se(dataViceroy$ForewingArea)
+```
+
+```{r}
+se(dataQueen$ForewingArea)
+```
+
+```{r}
+t.test(dataMonarch$ForewingArea)
+```
+
+95 % CI Queen
+
+```{r}
+t.test(dataViceroy$ForewingArea)
+```
+
+95% CI Queen
+
+```{r}
+t.test(dataQueen$ForewingArea)
+```
+
+95% CI Queen

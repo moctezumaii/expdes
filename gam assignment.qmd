@@ -1,0 +1,253 @@
+---
+title: "GAMS"
+author: "Alejandro Molina Moctezuma"
+format: 
+  html:
+    self-contained: true
+editor: visual
+toc: true
+execute:
+  tidy: true
+---
+
+## GAM's vs GLM's
+
+This was one of the questions that was submitted. And one that has no straightforward answer. At least from me (I hate straightforward answers in statistics).
+
+As George Box said in his [1976 paper "Science and Statistics"](https://www.jstor.org/stable/2286841): "All models are wrong . . ., the practical question is how wrong do they have to be to not be useful". My interpretation of this is: all models are wrong. It is important to know 1) how they are wrong, 2) how wrong they are, and 3) how useful they are. This is the reason I always have students read ["A practical guide to selecting models for exploration, inference, and prediction in ecology".](https://esajournals.onlinelibrary.wiley.com/doi/10.1002/ecy.3336) That is also why I do not give "rules" for when to run each test. Remember, even when simulating data in the most perfect conditions, our data is never perfectly normal, linear, or homoscedastic. We are always breaking assumptions. So, it is up to us to decide what model to use, and that is based on the usefulness of the model given our research question.
+
+Whenever we build a statistical model, we also face trade-offs. A big one is between flexibility and interpretability. When we talk about models being useful, **interpretability** is a thing that makes models **VERY** useful. So, it should always be taken into account. **GLM's are easier to interpret and easier for the reader to understand** that GLM's. My philosophy is to always do **the simplest model that will be useful answering my research question.** For example, I won't be running a complex Bayesian hierarchical model, if I can instead simply run a t-test. There is **nothing** wrong with running "basic" statistical tests. On the contrary, I think that a lot of complexity in models ran are the result of **posturing** more than logic, and cause more troubles than they solve, and make the model less **useful.** Dr. Brian McGill coined the term [statistical machismo](https://dynamicecology.wordpress.com/2012/09/11/statistical-machismo/)**,** and writes often about it on the [dynamic ecology blog](https://dynamicecology.wordpress.com/). By the way, I highly recommend that blog, even if you are not an ecologist. I also recognize that this **assignment** is looking more and more like a **blog** post, and less like an assignment, so I'll reel back. **The whole point is, GLM's are easier to interpret, which is a big deal!** I would never run a gam if I could answer a question with a glm.
+
+**GAM's** offer us more flexibility. And they are better at predicting complex relationships. We often need to model more complex phenomena than can be represented by linear relationships. So we can use GAM's. Main problem with GAMs is that we don't end up with easy to interpret parameters ($\beta's$). If we went an even more flexible and complex route, we could run machine learning models, like boosted regression trees or neural networks, that can be very good at making predictions of complex relationships. The problem is that they tend to need lots of data, are quite difficult to interpret, and one can rarely make inferences from the model results.
+
+::: {.callout-note .illustration style="color:gray; background-color: black; border-color: blue"}
+## In short
+
+GLM's are easier to interpret. They are great for inference and for linear relationships. I recommend running a GLM whenever possible, and only do GAM's when the complexity of the relationships calls for it (e.g. the relationships between variables are complex and non-linear)
+:::
+
+Essentially, it is useful when your data looks like this:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+set.seed(566)
+library(mgcv)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(cowplot)
+isit <- read.csv("ISIT.csv")
+
+dat = gamSim(
+  1,
+  n = 400,
+  dist = "normal",
+  scale = 1,
+  verbose = FALSE
+)
+
+dat2<- dat %>%
+  select(x2, y) %>%
+  pivot_longer(-y, names_to = 'x', values_to = 'Variable')
+
+dat %>%
+  select(x2, y) %>%
+  pivot_longer(-y, names_to = 'x', values_to = 'Variable') %>% 
+  ggplot(aes(x = Variable, y = y)) +
+  geom_point(alpha = .25, color = 'black') +
+  geom_smooth(aes(), color = '#56B4E9', se = F) +
+  geom_smooth(method = lm,color="orange", se=F) +
+  theme_cowplot() 
+
+
+```
+
+Ask yourself: which of the two models (represented by the blue line and the orange line) do you think is more useful?
+
+Some people really like the `scatterplot` function in the `car` package to explore the dataset initiailly:
+
+```{r message=FALSE, warning=FALSE}
+library(car)
+scatterplot(y~Variable, data= dat2)
+```
+
+I prefer to use the preloaded ggplot `geom_smooth` functions for a quick a dirty initial look at the data (but I do not recommend to use these functions for a more "formal" data analysis:
+
+```{r message=FALSE, warning=FALSE}
+  ggplot(data=dat2,aes(x = Variable, y = y)) +
+  geom_point(alpha = .25, color = 'black') +
+  geom_smooth(aes(), color = '#56B4E9', se = F) +
+  geom_smooth(method = lm,color="orange", se=F) +
+  theme_cowplot() 
+```
+
+FYI: if your system has temporal or spatial autocorrelation, then GAM's are usually the way to go!
+
+## Example
+
+We will work with the same example as the slideshow.
+
+You were tasked with running a model with `Season` (season should be a factor!), `Sample Depth` (smooth), and `relative depth` (linear). We can run that model, and check the basis dimensions with:
+
+```{r}
+isit$Season<-as.factor(isit$Season)
+model_seasonsrel <- gam(Sources ~ Season + s(SampleDepth) +RelativeDepth, data = isit,
+    method = "REML")
+
+k.check(model_seasonsrel)
+```
+
+And you can change the dimensions using:
+
+```{r}
+model_seasonsrel2 <- gam(Sources ~ Season + s(SampleDepth, k=20) +RelativeDepth, data = isit,
+    method = "REML")
+```
+
+You can use AIC to test the models. I generally don't change the k in the models I run.
+
+Run that same again model, but make `relative depth` a "smooth" term.
+
+Choose whether is best to keep `relative depth` as a linear or a smooth term. You can use AIC to help you answer this question. You can also look at the plots, and the EDF.
+
+## Interactions
+
+If we want an interactive term between season and sample depth, (with season being a linear, categorical term), this is how we would do it:
+
+```{r}
+season_interact <- gam(Sources ~ Season + 
+                         s(SampleDepth, by=Season) + 
+                         s(RelativeDepth), 
+                       data = isit, method = "REML")
+
+summary(season_interact)
+```
+
+We can see that we obtain a sample depth for each season.
+
+We can plot all of the effects:
+
+```{r}
+plot(season_interact, all.terms = TRUE)
+```
+
+We canalso plot the relationship between season, sample depth and bioluminiscence using the `mgcv` built-in function `vis.gam`
+
+```{r warning=FALSE}
+vis.gam(season_interact, n.grid=70, lwd=0.3)
+```
+
+We can rotate it using the `theta` arhument:
+
+```{r warning=FALSE}
+vis.gam(season_interact, n.grid=60, lwd=0.3, theta=120)
+```
+
+These plots can be useful, but I am not a fan of 3-d plots.
+
+Finally, let's look at nteraction between two smooth variables. This is how you would run it:
+
+```{r}
+interaction <- gam(Sources ~ Season + s(SampleDepth, RelativeDepth), 
+                       data = isit, method = "REML")
+summary(interaction)
+```
+
+Finally, we can plot it:
+
+```{r warning=FALSE}
+vis.gam(interaction, view = c("SampleDepth", "RelativeDepth"), 
+        theta = 120, n.grid = 50, lwd = .3)
+```
+
+Using AIC try to 1) figure out what the best model is, 2) see if you could benefit from changing k.
+
+## Example 2
+
+We will work with a vegetation dataset.
+
+```{r}
+veg<-read.csv("Vegetation2.csv")
+head(veg)
+```
+
+This dataset contains the following variables:
+
+1.  SR: Species Richness
+2.  ROCK: Rock content
+3.  BARESOIL: bare soil content
+4.  LITTER: litter content
+5.  Fallprec: Fall rain
+6.  SprTmax: Max temperature in the Spring
+7.  Time: Year of transect
+8.  Transect: Transect number
+
+Species richness will be our response variable, and ROCK will be the explanatory variable.
+
+First, let's explore the relationship between our explanatory and response variables. We can use the scatterplot
+
+```{r}
+scatterplot(SR~ROCK, data= veg)
+```
+
+In this case, the plot isn't super useful
+
+```{r}
+  ggplot(data=veg,aes(x = ROCK, y = SR)) +
+  geom_point(alpha = .25, color = 'black') +
+  geom_smooth(aes(), color = '#56B4E9', se = F) +
+  geom_smooth(method = glm, method.args = list(family = "poisson"),color="orange", se=F) +
+  theme_cowplot() 
+```
+
+Base on this exploratory plots, do you think a GLM or a GAM is more appropriate?
+
+Let's run both a GAM and a GLM
+
+```{r}
+gamveg<-gam(SR~s(ROCK), data=veg, family = poisson())
+```
+
+```{r}
+glmveg<-glm(SR~ROCK, data=veg, family = poisson())
+```
+
+Now, use AIC, the summaries, $R^2$ and decide which of the two models is better.
+
+You can estimate the $R^2$ of a glm using:
+
+```{r}
+with(summary(glmveg), 1 - deviance/null.deviance)
+```
+
+Also, this may be a good time to think whether any of the two models is acceptable. If not, you could explore whether including other variables is good. Maybe time and transect have a strong effect on the response variable. And those might be non-independent. Ask yourself, if this was your thesis data, and your question is to see the effect of rock cover on richness, what would you do?
+
+Here, I run an example of running a **Generalized Additive Mixed Model** in `mgvc` . Think of this as combining a mixed effects model and a gam. This is how you run it:
+
+```{r}
+veg$Transect<-as.factor(veg$Transect)
+gammveg<-gamm(SR~s(ROCK),random = list(Transect=~1), data=veg, family = poisson())
+```
+
+And the result is a list with two objects:
+
+```{r}
+gammveg$gam #a gam objectsimilar to the ones opbtained from running other gams
+gammveg$lme #an lme object. We estimate AIC from this object
+```
+
+To obtain the AIC we can do the following:
+
+```{r}
+AIC(gammveg$lme)
+
+```
+
+This is a MUCH better model than before! (apparently)
+
+And to explore the object, we do the following:
+
+```{r}
+summary(gammveg$gam)
+```
+
+Well... the edf is 1. So, we would be better of doing a mixed model and forgetting about running GAMS in this dataset. However, our $R^2$ is 0.091, and the rock variable seems to not be significant. Again, oftentimes our data will look like this. And we need to make (not easy) decision on how to analyze it and present it. If you are curious, you can explore more of the dataset. However, you won't fin many meaningful relationships no matter what you run. A reminder that the experimental design, and the actual system are more important than the statistical method!

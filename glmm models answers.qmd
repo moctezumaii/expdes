@@ -1,0 +1,123 @@
+---
+title: "Mixed models in glmmTMB"
+format: 
+  html:
+    self-contained: true
+---
+
+# How to run a model in glmmTMB
+
+## Let's run the models
+
+Mixed effects models in glmmTMB. How do we run them?
+
+We have both fixed and mixed effects models in glmmTMB. In this specific example, we are trying to run 4 models to figure out which random effects to use in our model selection step. The first step is to run 4 models, each with the same fixed effects, but different random effects.
+
+Here is how you run those models in r:
+
+$$
+\underbrace{model2}_{\text{Model Name}}<- \underbrace{glmmTMB}_{\text{function for mixed effects models}} (\underbrace{\text{Richness~NAP*Exposure}}_{\text{Fixed effects}} \underbrace{+ (1|Beach)}_{Random effects}, data = rikz, \underbrace{family = poisson}_{Distribution})
+$$ {#eq-model2}
+
+In our example we are LEAVING FIXED EFFECTS THE SAME. THEY ARE ALWAYS Richness\~Nap\*Exposure.
+
+However, we are exploring 4 random effects:
+
+1.  No random effects
+2.  Random intercept (model 2, the one showed above)
+3.  Random slope
+4.  Random intercept and random slope
+
+Let's run each model.
+
+### Model 1:
+
+The no random effects model is:
+
+$$
+log(ERichness) \sim \beta_0 + \beta_1 (NAP)_i + \beta_2 Exposure2_i ... 
+$$
+
+$$
+Richness_i \sim Poisson(ERichness)_i
+$$
+
+And the code to run it is:
+
+```{r}
+#| eval: false
+
+model1<-glmmTMB(Richness~NAP*Exposure, data = rikz, family = poisson)
+```
+
+It has no random effect... so, it's just run as a simple glm.
+
+### Model 2
+
+The random intercept model is:
+
+$$ log(ERichness) \sim (\beta_0 + \gamma_j) + \beta_1 (NAP)_i + \beta_2 Exposure2_i ...  $$
+
+$$ Richness_i \sim Poisson(ERichness)_i $$
+
+And the way to introduce than randomness $\gamma_j$ is:
+
+$$
+\underbrace{model2}_{\text{Model Name}}<- \underbrace{glmmTMB}_{\text{function for mixed effects models}} (\underbrace{\text{Richness~NAP*Exposure}}_{\text{Fixed effects}} \underbrace{+ (1|Beach)}_{Random effects}, data = rikz, \underbrace{family = poisson}_{Distribution})
+$$
+
+or:
+
+```{r}
+#| eval: false
+
+model2<-glmmTMB(Richness~NAP*Exposure + (1|Beach), data = rikz, family = poisson)
+
+```
+
+If you see the equation, we need to estimate one gamma for each beach. That is why we use (1\|Beach).
+
+### Model 3
+
+Random slope:
+
+$$ log(ERichness) \sim \beta_0 + (\beta_1 * \psi_j * NAP_i )+ \beta_2 Exposure2_i ...  $$
+
+$$ Richness_i \sim Poisson(ERichness)_i $$
+
+Here, there is a random slope ($\psi_j$), and it affects NAP. Exposure is categorical, so, it doesn't hav a slope. This is how we run it:
+
+$$
+\underbrace{model3}_{\text{Model Name}}<- \underbrace{glmmTMB}_{\text{function for mixed effects models}} (\underbrace{\text{Richness~NAP*Exposure}}_{\text{Fixed effects}} \underbrace{+ (0+NAP|Beach)}_{Random effects}, data = rikz, \underbrace{family = poisson}_{Distribution})
+$$
+
+Here, we don't want it to estimate random intercepts, hence the 0. However, we want it to estimate random slopes, so, that's why we ass NAP
+
+```{r}
+#| eval: false
+
+model3<-glmmTMB(Richness~NAP*Exposure + (0+NAP|Beach), data = rikz, family = poisson)
+```
+
+### Model 4:
+
+Random slope and intercept:
+
+$$ log(ERichness) \sim (\beta_0 + \gamma_j) + (\beta_1 * \psi_j * NAP_i )+ \beta_2 Exposure2_i ...  $$
+
+$$ Richness_i \sim Poisson(ERichness)_i $$
+
+Here, there is a random slope ($\psi_j$) and random intercept ($\gamma_i$). This is how we run it:
+
+$$
+\underbrace{model4}_{\text{Model Name}}<- \underbrace{glmmTMB}_{\text{function for mixed effects models}} (\underbrace{\text{Richness~NAP*Exposure}}_{\text{Fixed effects}} \underbrace{+ (1+NAP|Beach)}_{Random effects}, data = rikz, \underbrace{family = poisson}_{Distribution})
+$$
+
+Or
+
+```{r}
+#| eval: false
+
+
+model4<-glmmTMB(Richness~NAP*Exposure + (1+NAP|Beach), data = rikz, family = poisson)
+```

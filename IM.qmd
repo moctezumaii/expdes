@@ -1,0 +1,378 @@
+---
+title: "IPM lecture code"
+format:
+  revealjs: 
+    theme: serif
+html:
+    self-contained: true
+editor: visual
+toc: true
+execute:
+  tidy: true
+  message: false
+  warning: false
+---
+
+## Introduction
+
+-   Thank you for being here today! to my lecture!
+
+This file contains all you need in order to run the examples in `STAN` and to run your first integrated model. Let me know if you have any questions!
+
+## Data and code
+
+This example, was inspired by a similar example (and dataset) found in the following book:
+
+------------------------------------------------------------------------
+
+Kéry, M., & Kellner, K. F. (2024). *Applied statistical modelling for ecologists: A practical guide to Bayesian and likelihood inference using R, JAGS, NIMBLE, Stan and TMB* (1st edition). Elsevier.
+
+------------------------------------------------------------------------
+
+I highly recommend this book for any ecologist!
+
+The dataset in the example is not real, and was obtained by simulating data. This is an ideal way to test new quantitative models because it allows you to compare your estimated to the real parameters! Here is the code I used to simulate the data:
+
+```{r eval=F}
+set.seed(20)
+
+# Simulate the two data sets and plot them
+# Choose sample size and parameter values for both data sets
+nsites1 <- 500                                         # Sample size for count data
+nsites2 <- 1000                                        # Sample size for zero-truncated counts
+nsites3 <- 2000                                        # Sample size for detection/nondetection data
+mean.lam <- 2                                          # Average expected abundance (lambda) per site
+beta <- -2                                             # Coefficient of elevation covariate on lambda
+truth <- c("log.lam" = log(mean.lam),"beta" = beta)    # Save truth
+
+# Simulate elevation covariate for all three and standardize to mean of 1000 and
+# standard deviation also of 1000 m
+elev1 <- sort(runif(nsites1, 200, 2000))               # Imagine 200–2000 m a.s.l.
+elev2 <- sort(runif(nsites2, 200, 2000))
+elev3 <- sort(runif(nsites3, 200, 2000))
+selev1 <- (elev1-1000)/1000                            # Scaled elev1
+selev2 <- (elev2-1000)/1000                            # Scaled elev2
+selev3 <- (elev3-1000)/1000                            # Scaled elev3
+
+# Create three regular count data sets with log-linear effects
+C1 <- rpois(nsites1, exp(log(mean.lam) + beta * selev1))
+C2 <- rpois(nsites2, exp(log(mean.lam) + beta * selev2))
+C3 <- rpois(nsites3, exp(log(mean.lam) + beta * selev3))
+
+table(C1)                                              # Tabulate data set 1
+
+# Create data set 2 (C2) by zero-truncating (discard all zeroes)
+ztC2 <- C2                                             # Make a copy
+ztC2 <- ztC2[ztC2 > 0]                                 # Tossing out zeroes yields zero-truncated data
+
+table(C2); table(ztC2)                                 # tabulate both original and ZT data set
+
+# Turn count data set 3 (C3) into detection/nondetection data (y)
+y <- C3                                                # Make a copy
+y[y > 1] <- 1                                          # Squash to binary
+
+table(C3) ; table(y)                                   # tabulate both original counts and DND
+
+```
+
+::: callout-note
+## Be aware 🧠
+
+I reformatted the data following the simulation. The provided code will not result in the dataframes or csv's provided to you.
+:::
+
+In this document I use the data that I provided:
+
+```{r}
+countdata1<-read.csv("countdata1.csv")
+countdata2<-read.csv("countdata2.csv")
+detdata<-read.csv("detection.csv")
+```
+
+These are also the datasets I used for the examples in the presentation
+
+## Running the models in Stan
+
+### Model 1: GLM
+
+The first model is a GLM. It is pretty easy to run in STAN,
+
+This is how I would do it, but you can modify it (be aware, I am more familiar with JAGS)
+
+```{r}
+library(rstan)
+bdata <- list(C1 = countdata1$counts, nsites1 = nrow(countdata1), selev1 = countdata1$selev)
+
+cat(file = "model4.stan",
+    "data {
+  int nsites1;
+  array[nsites1] int C1;
+  vector[nsites1] selev1;
+}
+parameters {
+  real alpha;
+  real beta;
+}
+model {
+  vector[nsites1] lambda1;
+
+  // Priors
+  alpha ~ uniform(-10, 10);
+  beta ~ normal(0, 100);
+
+  // Likelihood
+  for (i in 1:nsites1){
+    lambda1[i] = exp(alpha + beta * selev1[i]);
+    C1[i] ~ poisson(lambda1[i]);
+  }
+
+}
+
+generated quantities {
+  real mean_lam = exp(alpha);
+}
+" )
+
+# Parameters monitored
+params <- c("mean_lam", "alpha", "beta")
+
+# HMC settings
+ni <- 2000 ; nb <- 1000 ; nc <- 4 ; nt <- 1
+
+# Call STAN, assess convergence and print results table
+  out4.stan <- stan(file = "model4.stan", data = bdata,
+                    warmup = nb, iter = ni, chains = nc, thin = nt) 
+rstan::traceplot(out4.stan) 
+print(out4.stan, dig = 3) 
+stan_est <- summary(out4.stan)$summary[1:2,1]
+```
+
+### Model 2: Zero truncated
+
+::: callout-note
+## How to zero-truncate?
+
+It is very easy to fit zero truncated models in **stan** (or JAGS).
+
+We simply use the `T()` syntax
+:::
+
+```{r}
+bdata <- list(C2 = countdata2$counts, nsites2 = nrow(countdata2), selev2 = countdata2$selev)
+
+
+cat(file = "model4.stan",
+"data {
+  int nsites2;
+  array[nsites2] int C2;
+  vector[nsites2] selev2;
+}
+parameters {
+  real alpha;
+  real beta;
+}
+model {
+  vector[nsites2] lambda2;
+
+  // Priors
+  alpha ~ uniform(-10, 10);
+  beta ~ normal(0, 100);
+
+  // Likelihood
+
+  for (j in 1:nsites2){
+    lambda2[j] = exp(alpha + beta * selev2[j]);
+    C2[j] ~ poisson(lambda2[j]) T[1, ];
+  }
+ 
+}
+
+generated quantities {
+  real mean_lam = exp(alpha);
+}
+" )
+
+# Parameters monitored
+params <- c("mean_lam", "alpha", "beta")
+
+# HMC settings
+ni <- 2000 ; nb <- 1000 ; nc <- 4 ; nt <- 1
+
+# Call STAN , assess convergence and print results table
+system.time(
+  out4.stan <- stan(file = "model4.stan", data = bdata,
+    warmup = nb, iter = ni, chains = nc, thin = nt) )
+rstan::traceplot(out4.stan) 
+print(out4.stan, dig = 3) 
+stan_est <- summary(out4.stan)$summary[1:2,1]
+
+
+```
+
+### Model 3: cloglog bernoulli
+
+```{r}
+bdata <- list(y = detdata$y, nsites3 = nrow(detdata), selev3 = detdata$selev)
+
+cat(file = "model4.stan",
+"data {
+
+  int nsites3;
+
+  array[nsites3] int y;
+
+  vector[nsites3] selev3;
+}
+parameters {
+  real alpha;
+  real beta;
+}
+model {
+
+  vector[nsites3] psi;
+
+  // Priors
+  alpha ~ uniform(-10, 10);
+  beta ~ normal(0, 100);
+
+  // Likelihood
+
+  for (k in 1:nsites3){
+    psi[k] = inv_cloglog(alpha + beta * selev3[k]);
+    y[k] ~ bernoulli(psi[k]);
+  }
+}
+
+generated quantities {
+  real mean_lam = exp(alpha);
+}
+" )
+
+# Parameters monitored
+params <- c("mean_lam", "alpha", "beta")
+
+# HMC settings
+ni <- 2000 ; nb <- 1000 ; nc <- 4 ; nt <- 1
+
+# Call STAN (ART 90/45 sec), assess convergence and print results table
+system.time(
+  out4.stan <- stan(file = "model4.stan", data = bdata,
+    warmup = nb, iter = ni, chains = nc, thin = nt) )
+rstan::traceplot(out4.stan) 
+print(out4.stan, dig = 3) 
+stan_est <- summary(out4.stan)$summary[1:2,1]
+
+
+```
+
+::: callout-important
+## Challenge
+
+Run a single integrated model using the three datasets
+:::
+
+## Other code used in slideshow
+
+Here is all the code used in the slideshow, in case you find it useful:
+
+```{r eval=FALSE}
+library(ggplot2)
+library(cowplot)
+countdata1<-read.csv("countdata1.csv")
+countdata2<-read.csv("countdata2.csv")
+detdata<-read.csv("detection.csv")
+
+ggplot(data=countdata1, aes(x=elevation, y=counts))+
+geom_point()+
+  geom_smooth(method = glm, method.args = list(family = "poisson"))+
+  xlab("Elevation (m)")+
+  ylab("Counts")+
+  
+  theme_cowplot()
+```
+
+```{r eval=FALSE}
+summary(fm1 <- glm(counts ~ selev, data= countdata1, family = poisson(link = "log")))
+```
+
+```{r eval=FALSE}
+library(ASMbook)
+NLL1 <- function(param, y, x) {
+  alpha <- param[1]
+  beta <- param[2]
+  lambda <- exp(alpha + beta * x)
+  LL <- dpois(y, lambda, log = TRUE)                   # LL contribution for each datum
+  return(-sum(LL))                                     # NLL for all data
+}
+
+# Minimize NLL
+inits <- c(alpha = 0, beta = 0)                        # Need to provide initial values
+sol1 <- optim(inits, NLL1, y = countdata1$counts, x = countdata1$selev, hessian = TRUE, method = 'BFGS')
+tmp1 <- get_MLE(sol1, 4)
+```
+
+```{r eval=FALSE}
+NLL2 <- function(param, y, x) {
+  alpha <- param[1]
+  beta <- param[2]
+  lambda <- exp(alpha + beta * x)
+  L <- dpois(y, lambda)/(1-ppois(0, lambda))           # L. contribution for each datum
+  return(-sum(log(L)))                                 # NLL for all data
+}
+
+# Minimize NLL
+inits <- c(alpha = 0, beta = 0)                        # Need to provide initial values
+sol2 <- optim(inits, NLL2, y = countdata2$counts, x = countdata2$selev, hessian = TRUE, method = 'BFGS')
+tmp2 <- get_MLE(sol2, 4)
+```
+
+```{r eval=FALSE}
+summary(fm3 <- glm(y ~ selev,data=detdata, family = binomial(link = "cloglog")))
+```
+
+```{r eval=FALSE}
+NLL3 <- function(param, y, x) {
+  alpha <- param[1]
+  beta <- param[2]
+  lambda <- exp(alpha + beta * x)
+  psi <- 1-exp(-lambda)
+  LL <- dbinom(y, 1, psi, log = TRUE)                  # L. contribution for each datum
+  return(-sum(LL))                                     # NLL for all data
+}
+
+# Minimize NLL
+inits <- c(alpha = 0, beta = 0)
+sol3 <- optim(inits, NLL3, y = y, x = selev3, hessian = TRUE, method = 'BFGS')
+tmp3 <- get_MLE(sol3, 4)
+```
+
+```{r eval=FALSE}
+
+NLLjoint <- function(param, y1, x1, y2, x2, y3, x3) {
+  # Definition of elements in param vector (shared between data sets)
+  alpha <- param[1]                                    # log-linear intercept
+  beta <- param[2]                                     # log-linear slope
+  # Likelihood for the Poisson GLM for data set 1 (y1, x1)
+  lambda1 <- exp(alpha + beta * x1)
+  L1 <- dpois(y1, lambda1)
+  # Likelihood for the ztPoisson GLM for data set 2 (y2, x2)
+  lambda2 <- exp(alpha + beta * x2)
+  L2 <- dpois(y2, lambda2)/(1-ppois(0, lambda2))
+  # Likelihood for the cloglog Bernoulli GLM for data set 3 (y3, x3)
+  lambda3 <- exp(alpha + beta * x3)
+  psi <- 1-exp(-lambda3)
+  L3 <- dbinom(y3, 1, psi)
+  # Joint log-likelihood and joint NLL: here you can see that sum!
+  JointLL <- sum(log(L1)) + sum(log(L2)) + sum(log(L3)) # Joint LL
+  return(-JointLL)                                      # Return joint NLL
+}
+
+# Minimize NLLjoint
+inits <- c(alpha = 0, beta = 0)
+solJoint <- optim(inits, NLLjoint, y1 = countdata1$counts, x1 = countdata1$selev, y2 = countdata2$counts, x2 = countdata2$selev,
+  y3 =detdata$y, x3 = detdata$selev, hessian = TRUE, method = 'BFGS')
+
+# Get MLE and asymptotic SE and print and save
+(tmp4 <- get_MLE(solJoint, 4))
+diy_est <- tmp4[,1]
+```

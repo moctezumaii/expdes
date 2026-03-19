@@ -1,0 +1,77 @@
+---
+title: "Simulation parameters"
+format: revealjs
+---
+
+## Questions about reading
+
+What are the simulation parameters?
+
+$$
+P(\# \text{ Heads} = 2) \approx \frac{\text{Number of times \{# Heads = 2\} } }{\text{# Experiments}}
+$$
+
+## Questions about reading
+
+What are the simulation parameters?
+
+$$ P(\text{Event}) \approx \frac{\text{Number of times  { # Event} } }{\text{# Experiments}} $$
+
+## In R
+
+Number of times you get 2 heads when tossing 3 coins.
+
+First step:
+
+Toss 1 coin 3 times and record the number of heads:
+
+```{r echo=TRUE}
+rbinom(1,3,0.5)
+```
+
+## In R
+
+Second step:
+
+Toss 1 coin 3 times and record the number of heads. Let's repeat the experiment 1,000 times
+
+```{r echo=TRUE}
+rbinom(1000,3,0.5)
+```
+
+## In R
+
+Third step:
+
+Count how many of those times we got 2 heads from N experiments and obtain the P
+
+$$
+P(\# \text{ Heads} = 2) \approx \frac{\text{Number of times \{# Heads = 2\} } }{\text{# Experiments}}
+$$
+
+```{r echo=TRUE}
+n<-1000
+sum(rbinom(n,3,0.5)==2)/n
+```
+
+## Probability of winning the lottery once if I play it 1,000,000 times
+
+```{r echo=TRUE}
+n<-1000000
+sum(rbinom(n,10000,3.42e-09)>0)/n
+```
+
+## Main issue...
+
+We usually don't know the probability of a success :(
+
+## In R
+
+$$
+P(\# \text{ Heads} = 2) \approx \frac{\text{Number of times \{# Heads = 2\} } }{\text{# Experiments}}
+$$
+
+```{r echo=TRUE}
+n<-1000
+sum(rbinom(n,3,0.5)==2)/n
+```

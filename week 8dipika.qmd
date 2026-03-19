@@ -1,0 +1,176 @@
+---
+title: "week 8"
+author: "dipika"
+format: html
+editor: visual
+---
+
+**Assignment 1:**
+
+Look at the summary of your model, and answer: was the model good at estimating β0 (intercept), β1 (size) and the residual standard error?
+
+```{r}
+n<-rpois(1,50)
+n
+size<-runif(n,20,60)
+print(size)
+Hg<-0.5 + 0.018*size + rnorm(n,0,0.08)
+plot(Hg~size)
+df1<-data.frame(size=size,Hg=Hg)
+model1<-lm(Hg~size,data=df1)
+summary(model1)
+```
+
+Intercept (β0​): True value: 0.5 (as per the simulation setup) while Estimated value: 0.469 (from the model summary).The estimate is close to the true value but shows a slight negative bias. Given the small standard error (0.0363) and the large t-value (11.99, p \< 0.001), the estimate is statistically significant, but it is not a perfect match.
+
+ Slope (β1​, size):True value: 0.018 (as per the simulation setup) while Estimated value: 0.0186 (from the model summary). The estimate is very close to the true value. This suggests the model effectively captured the relationship between size and Hg
+
+Residual Standard Error: True value (simulated standard deviation): 0.08 (square root of variance 0.0064) while Estimated value: 0.067 (from the model summary).The residual standard error is slightly lower than the true value, suggesting the model might slightly underestimate the variability in the data. However, the difference is not substantial, and the overall fit is excellent, as indicated by the high R2 value (0.926).
+
+Conclusion: The model performs very well in estimating the slope (β1​) and captures the general relationship between size and Hg.
+
+**Assignment 2**
+
+Look at the summary of your model, and answer: was the model good at estimating β0 (intercept), β1 (size), β2, β3, β4 and the residual standard error?
+
+Run an Anova (in this case technically an Ancova, as there is covariance), and if there are region is significant, do a pairwise comparison.
+
+We **know** (because we set the parameters) that every site is different. Is your pairwise comparison able to identify these differences among ALL groups? If it can’t, explain why you think it is failing at doing so.
+
+**Finally,** run a different model with the same exact data where there is an interactive effect between site and region (AKA, slope is different). Compare the AIC values of both models? Did AIC correctly choose the additive model as the “best model”?
+
+```{r}
+beta<-c(0.025,0.01,0.1)
+HgDat<-list(site1=df1)
+df1$region<-"A"
+HgDat<-list(site1=df1)
+for(i in 1:3){
+  n<-rpois(1,50) 
+  size<-runif(n,20,60)
+  Hg<-0.5 + 0.018*size + rnorm(n,0,0.08)+beta[i]
+  Region<-rep(LETTERS[i+1],n)
+  HgDat[[i+1]]<-data.frame(size=size,Hg=Hg,region=Region)
+}
+HgDat_df<-dplyr::bind_rows(HgDat)
+HgDat_df$region<-as.factor(HgDat_df$region)
+head(HgDat_df)
+model2<-lm(Hg~size+region,data=HgDat_df)
+summary(model2)
+anova(model2)
+library(emmeans)
+pairwise <- emmeans(model2, pairwise ~ region)
+pairwise
+model_interactive <- lm(Hg ~ size * region, data = HgDat_df)
+summary(model_interactive)
+AIC(model2, model_interactive)
+
+
+```
+
+**Model fit**: The additive model effectively estimated β0 and β1​ but struggled to detect small differences between certain regions.
+
+**ANOVA (ANCOVA)**: The effect of size is highly significant (p\<2.2e−16. The effect of region is also significant (p=6.116e−11 suggesting differences exist between regions.
+
+**Pairwise comparison**: Did not identify all region differences because of overlapping variability and small effect sizes.
+
+**AIC**: The interactive model was selected as the better model, suggesting that allowing slopes to vary by region captures additional variation in the data. However, the improvement in fit is modest, and the additive model is simpler to interpret.
+
+**Assignment 3**
+
+Look at the summary of your model, and answer: was the model good at estimating β0 (intercept), β1 (size), and γ?
+
+```{r}
+nsites<-4
+gamma <- rnorm(n=nsites,mean=0,sd=0.25) 
+HgDatmixed<-list()
+for(i in 1:4){
+  n<-rpois(1,50) 
+  size<-runif(n,20,60)
+  Hg<- (0.5+gamma[i]) + 0.018*size + rnorm(n,0,0.08)
+  Net<-rep(LETTERS[i],n)
+  HgDatmixed[[i]]<-data.frame(size=size,Hg=Hg,net=Net)
+}
+HgDatmixed<-dplyr::bind_rows(HgDatmixed)
+HgDatmixed$net<-as.factor(HgDatmixed$net)
+library(glmmTMB)
+m3<-glmmTMB(Hg~size +(1|net), data=HgDatmixed)
+summary(m3)
+```
+
+The model performed well at estimating the slope (β1​), accurately reflecting the effect of size on mercury levels.
+
+The intercept (β0​) was underestimated (estimated intercept is **0.4294**, which deviates from the true value of **0.5),** likely due to the limited number of nets, which affects the model's ability to capture the overall fixed effect properly.
+
+Random intercept variance (γ)  was also underestimated (estimated variance=**0.02264**  and standard deviation=0.1504 significantly lower than the true variance of **0.0625** and standard deviation=0.25 likely due to the small sample size of 4 groups.
+
+**Assignment 4:** Run all the code in the “back to the Great Lakes” section again (actually do it 2 or 3 more times, no need to re-write it, just run it again). You should see how the random intercepts change each time you run them. Why do you think that happens?
+
+Repeat the “back to the Great Lakes” section again, but this time you are setting 25 nets. Look the summary of that new model, and answer: was the model good at estimating β0 (intercept), β1 (size), and γ?
+
+Finally, repeat that experiment, but this time there is **no random** intercept, but there is a **random slope. Show the summary of the model**
+
+```{r}
+nsites<-4
+gamma <- rnorm(n=nsites,mean=0,sd=0.25) 
+HgDatmixed<-list()
+for(i in 1:4){
+  n<-rpois(1,50) 
+  size<-runif(n,20,60)
+  Hg<- (0.5+gamma[i]) + 0.018*size + rnorm(n,0,0.08)
+  Net<-rep(LETTERS[i],n)
+  HgDatmixed[[i]]<-data.frame(size=size,Hg=Hg,net=Net)
+}
+HgDatmixed<-dplyr::bind_rows(HgDatmixed)
+HgDatmixed$net<-as.factor(HgDatmixed$net)
+library(glmmTMB)
+m3<-glmmTMB(Hg~size +(1|net), data=HgDatmixed)
+summary(m3)
+
+
+
+```
+
+When we repeat the "Great Lakes" section, the random intercepts vary due to several factors:
+
+Random Sampling: Each simulation creates a new dataset, introducing random noise to both fixed and random effects, which results in slightly different estimates.
+
+Limited Group Data: With only 4 nets (groups), the random effect estimates are more influenced by variability in the data for each group, making them more prone to fluctuation across simulations.
+
+Hierarchical Model Structure: The random intercept represents variability among nets, and each simulation introduces new group-level variation, which is reflected in the intercept values.
+
+```{r}
+nsites<-25
+gamma <- rnorm(n=nsites,mean=0,sd=0.25) 
+HgDatmixed<-list()
+for (i in 1:nsites){
+  n<-rpois(1,50) 
+  size<-runif(n,20,60)
+  Hg<- (0.5+gamma[i]) + 0.018*size + rnorm(n,0,0.08)
+  Net<-rep(LETTERS[i],n)
+  HgDatmixed[[i]]<-data.frame(size=size,Hg=Hg,net=Net)
+}
+HgDatmixed<-dplyr::bind_rows(HgDatmixed)
+HgDatmixed$net<-as.factor(HgDatmixed$net)
+library(glmmTMB)
+m4<-glmmTMB(Hg~size +(1|net), data=HgDatmixed)
+summary(m4)
+
+```
+
+**Models with 25 Nets:**
+
+When Model with Random Intercept (m4) was ran the following observations were found
+
+Intercept (β0): The estimated intercept is 0.5025, which is close to the true value of 0.50. The small standard error and high z-valueindicate that the model is good at estimating the intercept.
+
+Size (β1): The estimated slope for size is 0.0179, which is close to the true value of 0.0180. The very small standard error and high z-value confirm the model's accuracy in estimating the effect of size.
+
+Variance of Random Intercept (γ): Estimated value: 0.03714 (standard deviation of 0.19271 while the true variance introduced by site selection is 0.0625 (standard deviation of 0.25).  The estimated variance is slightly lower than the true value, this is expected due to the limited sample size and the inherent variability in random effects estimation.
+
+**Model with random slope**
+
+```{r}
+m_slope <- glmmTMB(Hg ~ size + (0 + size | net), data = HgDatmixed)
+summary(m_slope)
+
+```
