@@ -341,6 +341,11 @@ ggplot(dataanova, aes(x = x, y = values)) +
 
 results.aov <- aov(values ~ treatment + Error(farm), data = dataanova)
 
+results.aov
+
+results.aov <- aov(values ~ treatment * farm + Error(farm), data = dataanova)
+
+
 summary(results.aov)
 write_xlsx(tidy(results.aov), "Anova_ob3.xlsx")
 

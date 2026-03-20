@@ -130,3 +130,21 @@ You are interested in the effects of three different diets in three different br
 
 A greenhouse experiment tests the effect of fertilizer, irrigation, and light in the growth of tomato plants. This is in the `growthdata.csv` file
 :::
+
+How to run the models?
+
+This is how you rune the anovas:
+
+```{r eval=F}
+# Two fixed effects
+model <- aov(Y ~ A + B, data = df)           # additive
+model <- aov(Y ~ A * B, data = df)           # with interaction
+
+# One fixed (A), one random (B)
+model <- aov(Y ~ A + B + Error(B), data = df)     # additive
+model <- aov(Y ~ A * B + Error(B), data = df)     # with interaction
+
+# Nested (B nested within A)
+model <- aov(Y ~ A + Error(A/B), data = df)  # additive only — interaction impossible
+                                             # B levels are unique to each A level, they never cross
+```
