@@ -141,7 +141,7 @@ model <- aov(Y ~ A + B, data = df)           # additive
 model <- aov(Y ~ A * B, data = df)           # with interaction
 
 # One fixed (A), one random (B)
-model <- aov(Y ~ A + B + Error(B), data = df)     # additive
+model <- aov(Y ~ A + Error(B), data = df)     # additive
 model <- aov(Y ~ A * B + Error(B), data = df)     # with interaction
 
 # Nested (B nested within A)

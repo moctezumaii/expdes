@@ -3329,7 +3329,7 @@ window.Quarto = {
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">aov</span>(Y <span class="sc">~</span> A <span class="sc">*</span> B, <span class="at">data =</span> df)           <span class="co"># with interaction</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># One fixed (A), one random (B)</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">aov</span>(Y <span class="sc">~</span> A <span class="sc">+</span> B <span class="sc">+</span> <span class="fu">Error</span>(B), <span class="at">data =</span> df)     <span class="co"># additive</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">aov</span>(Y <span class="sc">~</span> A <span class="sc">+</span> <span class="fu">Error</span>(B), <span class="at">data =</span> df)     <span class="co"># additive</span></span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">aov</span>(Y <span class="sc">~</span> A <span class="sc">*</span> B <span class="sc">+</span> <span class="fu">Error</span>(B), <span class="at">data =</span> df)     <span class="co"># with interaction</span></span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Nested (B nested within A)</span></span>
