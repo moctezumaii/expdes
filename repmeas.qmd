@@ -1,5 +1,6 @@
 ---
-title: "Last assignment (optional)"
+title: "Design Assignment"
+subtitle: "Section 1"
 author: "Dr. Alejandro Molina Moctezuma"
 format:
   html: 
@@ -17,11 +18,175 @@ editor: visual
 knitr:
   opts_chunk: 
     collapse: true
-    header: "Last Assignment"
 execute: 
   warning: false
   tidy: true
 ---
+
+# This assignment
+
+This is just the first section of the assignment. The second one (dealing with data) will be uploaded at some point tomorrow (Tuesday 15).
+
+::: callout-note
+## Important dates 📆
+
+Friday 4/10/2026: NO CLASS (TAKE HOME EXAM UPLOADED). I can meet with you and help with this current assignment. This assignment is due 4/13
+
+Friday 4/24/2025: Exam due
+:::
+
+# Section 1
+
+## Instructions
+
+I will be describing 5 experiments. For each of them:
+
+1.  Identify the design
+2.  Identify the main plot and subplot factors (if applicable).
+3.  Identify the experimental and observational unit for each factor.
+4.  Write either:
+    1.  A linear model equation or
+    2.  An ANOVA model equation
+
+You will do this on a Quarto document.
+
+# Experiments
+
+Read the information for each of the following 5 experiments. Answer the 4 questions posted in instructions for **each** experiment.
+
+::: {.panel-tabset style="background-color: #dcf0f2; border: 1px solid white; .tabs{         border-right: 2px solid #636363;       border-top: 2px solid #636363;       border-bottom: 2px solid #636363; }"}
+## Irrigation and Fertilizer 🥬
+
+A researcher is testing two irrigation methods (drip vs. spray) and three fertilizer types (A, B, C) on crop yield of a leafy green. Each irrigation method is randomly assigned to fields. Within each field, all three fertilizers are applied randomly to plots
+
+## Chick Feed and Temperature 🐔
+
+Two feed types (standard vs. high-protein) are randomly assigned to pens of chickens. Within each pen, cages are randomly assigned to one of two temperatures (cool vs. warm). Weight is recorded after 4 weeks. Weight is not recorded prior to the four weeks.
+
+## Plant Genotypes 🌱
+
+A plant breeder tests 4 genotypes of wheat across 4 blocks in the field. Each genotype appears once per block. Each block has a slightly different soil, as there is a gradient change in soil type. Yield is recorded at harvest.
+
+## Weight of Chickens 🐔
+
+Weights of chicks are recorded weekly for 6 weeks. Each chick is randomly assigned to one of three diets. Chick ID is recorded.
+
+## Soil Type and Watering Frequency 🎑
+
+A greenhouse experiment tests the effect of soil type (clay, loam, sand) and watering frequency (daily vs. every 3 days) on seedling height. 6 replicates of each treatment combination are assigned randomly to individual pots.
+:::
+
+## How to write equations in Quarto?
+
+You can use double dollar signs: \$\$ to write an equation.
+
+You can also right-click on any equation from any assignment and select Latex math to see how I wrote the equation. For example:
+
+$$
+y_{ij} = \mu + \alpha_i + \beta_j + \alpha\beta_{ij} + \epsilon_{ij}
+$$
+
+where,
+
+$$
+\epsilon_{ij} \sim N(0,\sigma^2) 
+$$
+
+try right-clicking on one equation.
+
+------------------------------------------------------------------------
+
+# Section 2
+
+## Randomized Complete Block design
+
+Download the `mdat.csv` file and explore it. Make sure to transform Region to a factor.
+
+You are looking at data on abundance of moth larvae following one of three treatments: Control, Bt, and Dimilin. You have four plots, and each plot was divided in 3 and a random treatment was given to each subplot. However, your plots are in very different regions. Look at figure 1.
+
+![Figure 1. Experimental design](images/clipboard-1933841488.png)
+
+::: callout-warning
+## Question 3 ✏️
+
+1.  Run an anova using `aov` . **ONLY** test the effects of treatment (ignore the potential regional effect). Look at the summary ans interpret.
+
+2.  Run the same model, but add the effect of region (as a fixed effect). What changed? Why? Interpret the results.
+
+3.  Now, let's run the same model with region as a random effect. In this case, we do it using the following equation:
+
+    ```         
+    av1<-aov(Larvae~Treatment+Error(Region),data=mdat)
+    ```
+
+    Do you see any differences with including he blocking factor as random or fixed? Why?
+:::
+
+## Split plot design
+
+### Anova (aov)
+
+Download and read the `coffee.csv` file and explore it. Describe what each column means. You can look at the slides, it is the same example. This dataset contains a column called WU. This is used in order to estimate $\delta_ik$ which is the residual error at the whole unit level. We have 16 total "whole-units" (and 4 measurements per unit)
+
+You will use the following code to run it as an Anova:
+
+```{r eval=F}
+#Step 1: make sure plot and WU are factors:
+
+coffee$plot<-factor(coffee$plot)
+coffee$WU<-factor(coffee$WU)
+coffeeaov<-aov(y~cover_crop+fertilizer+cover_crop:fertilizer+plot+Error(WU), data=coffee)
+summary(coffeeaov)
+
+```
+
+We used the effect of plot as fixed (even though is random) because `aov` only allows for one random effect.
+
+::: callout-warning
+## Question 4 ✏️
+
+1.  Explore the data and describe it
+2.  Explore the summary of the model and describe it.
+3.  Write the equation (anova)
+4.  Check whether we estimated the degrees of freedom correctly on the slideshow
+5.  Why is plot random?
+
+Extra credit: Plot the results and describe them.
+:::
+
+### Linear Model (lme)
+
+In these models I recommend running a linear model instead of an aov analysis because it allows for multiple random effects.
+
+Outside of Quarto install the `nlme` package.
+
+Load `nlme` and run:
+
+```{r eval=FALSE}
+library(nlme)
+lme.coffee <- lme(y ~ fertilizer*cover_crop,
+                data = meatdata,
+                correlation = corCompSymm(), # To make results same as aov()
+                random = ~1|plot/WU)
+```
+
+::: callout-warning
+## Question 5 ✏️
+
+1.  Run a summary on the linear model, also run an anova using `anova(lme.coffee`) and interpret the results.
+:::
+
+How do we look at the interaction? How do we explore the differences? We will talk more about that soon 😃.
+
+## Latin Square Design
+
+You have 5 cows, and 5 different diet treatments. You want to see if any treatment increases the milk yield by the cows. So, you run a latin square design. Open the `latin_square_data.csv` and analyze the dataset using an ANOVA.
+
+::: callout-warning
+## Question 6 ✏️
+Run an ANOVA and analyze the latin square data. Make sure to include the null hypotheses, the equation of the model, and an interpretation of the results.
+:::
+
 
 ```{r echo=FALSE}
 library(tidyverse)
@@ -287,4 +452,4 @@ pwr.f2.test(u = 1, # I'm assuming you plan to test a 1 df effect
             power = .80) # Our desired power
 ```
 
-In this case the degrees of freedom of the "error term" are 87.17. If we add the 8 df's from the 3\*3 design plus the intercept, we get that we need 97 observations TOTAL. In this case 11 observations per group would be enough.
+In this case the degrees of freedom of the "error term" are 87.17. If we add the 8 df's from the $3 \times 3$ design plus the intercept, we get that we need 97 observations TOTAL. In this case 11 observations per group would be enough.
