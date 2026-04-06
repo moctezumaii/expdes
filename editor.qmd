@@ -1,0 +1,270 @@
+---
+title: "Editor's Notes — repmeas.qmd Review"
+author: "Copy Editor & Statistics Reviewer"
+format:
+  html:
+    embed-resources: true
+    toc: true
+    toc-depth: 3
+    theme: cosmo
+    fontsize: 1.1em
+    linestretch: 1.7
+---
+
+# Overview
+
+This document records every change made to `repmeas.qmd` when producing `reviewedassignment.qmd`. Changes are grouped into categories, and each entry includes the **before** text, the **after** text, the **location**, and the **reason** for the change.
+
+---
+
+# 1. Typos and Grammar
+
+## 1.1 Year typo in Important Dates callout
+
+- **Location:** Line 35, inside the `::: callout-note` block ("Important dates 📆")
+- **Before:** `Friday 4/24/2025: Exam due`
+- **After:** `Friday 4/24/2026: Exam due`
+- **Why:** The rest of the document uses 2026 dates (e.g., "4/10/2026"). April 24, 2026 is a Friday; April 24, 2025 was a Thursday. The year "2025" is clearly a typo.
+
+## 1.2 "ans" → "and"
+
+- **Location:** Line 112, Question 3 item 1 ("Look at the summary ans interpret")
+- **Before:** `Look at the summary ans interpret.`
+- **After:** `Look at the summary and interpret.`
+- **Why:** Simple typo; "ans" should be "and."
+
+## 1.3 "he" → "the"
+
+- **Location:** Line 122, Question 3 item 3 ("including he blocking factor")
+- **Before:** `including he blocking factor`
+- **After:** `including the blocking factor`
+- **Why:** Missing letter in "the."
+
+## 1.4 "even though is random" → "even though it is random"
+
+- **Location:** Line 143, paragraph after the `aov` code block for split-plot
+- **Before:** `even though is random`
+- **After:** `even though it is random`
+- **Why:** Missing pronoun "it."
+
+## 1.5 "on of" → "one of"
+
+- **Location:** Line 197, Repeated measures introduction ("can be on of the most")
+- **Before:** `can be on of the most`
+- **After:** `can be one of the most`
+- **Why:** Typo; "on" should be "one."
+
+## 1.6 "followinf" → "following"
+
+- **Location:** Line 246, just before the `aov` code chunk for the additive model ("we use the followinf")
+- **Before:** `we use the followinf:`
+- **After:** `we use the following:`
+- **Why:** Simple typo.
+
+## 1.7 "an an issue" → "an issue"
+
+- **Location:** Line 252, paragraph about temporal autocorrelation ("because of an an issue")
+- **Before:** `This is because of an an issue called temporal autocorrelation.`
+- **After:** `This is because of an issue called temporal autocorrelation.`
+- **Why:** Duplicated article "an."
+
+## 1.8 "wight" → "weight"
+
+- **Location:** Line 284, Profile analysis section ("looking at the wight of the chickens")
+- **Before:** `rather than looking at the wight of the chickens`
+- **After:** `rather than looking at the weight of the chickens`
+- **Why:** Typo in "weight."
+
+## 1.9 "divided in 3" → "divided into 3"
+
+- **Location:** Line 106, RCBD section ("each plot was divided in 3")
+- **Before:** `each plot was divided in 3`
+- **After:** `each plot was divided into 3`
+- **Why:** Standard English usage is "divided into," not "divided in."
+
+## 1.10 "milk yield by the cows" → "milk yield of the cows"
+
+- **Location:** Line 183, Latin Square Design section
+- **Before:** `increases the milk yield by the cows`
+- **After:** `increases the milk yield of the cows`
+- **Why:** "Yield of" is the standard phrasing.
+
+## 1.11 Missing period at end of Irrigation experiment description
+
+- **Location:** Line 61, Irrigation and Fertilizer tab ("applied randomly to plots")
+- **Before:** `...all three fertilizers are applied randomly to plots`
+- **After:** `...all three fertilizers are applied randomly to plots.`
+- **Why:** Missing sentence-ending period.
+
+## 1.12 "a spherical test" → "a sphericity test"
+
+- **Location:** Line 266, before the MANOVA code ("To run a spherical test")
+- **Before:** `To run a spherical test, we run a \`manova\``
+- **After:** `To run a sphericity test, we run a \`manova\``
+- **Why:** The test assesses *sphericity* (a property of the covariance matrix), not whether something is spherical. "Sphericity test" is the correct term.
+
+---
+
+# 2. Formatting / Quarto / LaTeX
+
+## 2.1 LaTeX subscript — `$\delta_ik$` → `$\delta_{ik}$` (first occurrence)
+
+- **Location:** Line 129, Split-plot design section ("estimate $\delta_ik$")
+- **Before:** `$\delta_ik$`
+- **After:** `$\delta_{ik}$`
+- **Why:** Without braces, LaTeX renders only `i` as the subscript and `k` as normal text. The subscript `ik` requires braces: `_{ik}`.
+
+## 2.2 LaTeX subscript — `$\delta_ik$` → `$\delta_{ik}$` (second occurrence)
+
+- **Location:** Line 244, additive model equation description ("$\delta_ik$ is the effect of the kth subject")
+- **Before:** `$\delta_ik$`
+- **After:** `$\delta_{ik}$`
+- **Why:** Same LaTeX subscript issue as 2.1.
+
+## 2.3 Misplaced backtick in inline code
+
+- **Location:** Line 176, Question 5 ("run an anova using `anova(lme.coffee`)")
+- **Before:** `` `anova(lme.coffee`) ``
+- **After:** `` `anova(lme.coffee)` ``
+- **Why:** The closing backtick was placed before the closing parenthesis, causing the `)` to render outside the code span. The backtick should follow the `)`.
+
+## 2.4 "Latex" → "LaTeX"
+
+- **Location:** Line 83, "How to write equations in Quarto?" section ("select Latex math")
+- **Before:** `select Latex math`
+- **After:** `select LaTeX math`
+- **Why:** The proper typographic form of the name is "LaTeX."
+
+---
+
+# 3. R Code Fixes
+
+## 3.1 Wrong dataset name: `meatdata` → `coffee`
+
+- **Location:** Line 168, inside the `lme()` call for the split-plot linear model
+- **Before:** `data = meatdata,`
+- **After:** `data = coffee,`
+- **Why:** The dataset loaded in this section is `coffee.csv`, and the object is called `coffee`. There is no object `meatdata` defined anywhere in this document. This would cause a runtime error. The correct name is `coffee`.
+
+## 3.2 `rep(SE, 2)` → `rep(SE, 4)`
+
+- **Location:** Line 364, inside the `data.frame()` call for `growthDF`
+- **Before:** `SE = rep(SE, 2))`
+- **After:** `SE = rep(SE, 4))`
+- **Why:** The `growthDF` data frame has 36 rows (9 intervals × 4 diets). The `SE` vector has 9 elements (one per interval). `rep(SE, 2)` produces only 18 values, which causes a recycling mismatch. `rep(SE, 4)` produces 36 values, correctly matching the 4 diets.
+
+---
+
+# 4. Statistical Correctness
+
+## 4.1 Power analysis — "If you have one" → "If you have three"
+
+- **Location:** Line 403, Power analysis section ("If you have one, you can estimate the rest.")
+- **Before:** `If you have one, you can estimate the rest.`
+- **After:** `If you have three, you can estimate the fourth.`
+- **Why:** The four quantities (sample size/df, effect size, α, power) are linked such that knowing *three* determines the fourth. The original text ("if you have one") is factually incorrect and would mislead students.
+
+## 4.2 Power of "0.5" → "0.80"
+
+- **Location:** Line 407, Power analysis narrative ("a power of 0.5 (generally pretty good power)")
+- **Before:** `a power of 0.5 (generally pretty good power)`
+- **After:** `a power of 0.80 (generally pretty good power)`
+- **Why:** The code uses `power=.80`. A power of 0.50 means a 50% chance of detecting a true effect — that is poor, not "generally pretty good." The conventional target is 0.80, which matches the code. The text "0.5" is a typo.
+
+## 4.3 "8 cm" → "5 cm" in power analysis narrative
+
+- **Location:** Line 407, Power analysis section ("a growth of 8 cm would be biologically important")
+- **Before:** `We believe a growth of 8 cm would be biologically important`
+- **After:** `We believe a growth of 5 cm would be biologically important`
+- **Why:** The R code immediately following this sentence uses `delta=5`. The narrative must match the code. Changing the text to "5 cm" (rather than changing the code to `delta=8`) preserves the subsequent interpretation ("we only need 7 plants") which is consistent with `delta=5, sd=3, power=.80`.
+
+## 4.4 "0.9" → "0.09" (effect size)
+
+- **Location:** Line 444, Power analysis ANOVA section ("I will use 0.9, which is a value between both of them")
+- **Before:** `I will use 0.9, which is a value between both of them.`
+- **After:** `I will use 0.09, which is a value between both of them.`
+- **Why:** Cohen's small f² = 0.02, medium f² = 0.15. A value "between both" is 0.09, not 0.9. The code on the next line uses `f2 = 0.09`, confirming this is a typo with a misplaced decimal point. An f² of 0.9 would be an enormous effect, not between small and medium.
+
+## 4.5 "a 2 factorial effect" → "a two-factor factorial design"
+
+- **Location:** Line 429, Power analysis ANOVA section ("we will do a 2 factorial effect")
+- **Before:** `For our example, we will do a 2 factorial effect. The Cohen's value would be:`
+- **After:** `For our example, we will use a two-factor factorial design. The Cohen's f² value would be:`
+- **Why:** "A 2 factorial effect" is grammatically and technically unclear. The subsequent example uses a 3×3 ANOVA (two factors). "Two-factor factorial design" is the correct terminology. Additionally, "Cohen's value" was ambiguous; specifying "Cohen's f² value" tells students exactly which effect-size metric is being discussed.
+
+---
+
+# 5. Clarity for Students
+
+No additional clarity-only changes were made beyond those already described above. The original teaching tone, question structure, and difficulty level are preserved.
+
+---
+
+# 6. Reviewed but Unchanged
+
+## 6.1 YAML underscore-style options (`fig_height`, `number_sections`, etc.)
+
+- **Location:** Lines 8–13 (YAML header)
+- **Status:** Unchanged
+- **Reason:** While Quarto documentation prefers hyphens (`fig-height`), underscores are accepted as aliases and render correctly. Changing them would be a stylistic preference, not a correction.
+
+## 6.2 "Tuesday 15" without month
+
+- **Location:** Line 28 ("uploaded at some point tomorrow (Tuesday 15)")
+- **Status:** Unchanged
+- **Reason:** In context, students receiving the assignment know the current month. Adding the month would be an editorial addition rather than a correction.
+
+## 6.3 CSS in panel-tabset `style` attribute
+
+- **Location:** Line 57 (`::: {.panel-tabset style="..."}`)
+- **Status:** Unchanged
+- **Reason:** The inline style includes `.tabs{...}` syntax which is non-standard for an HTML style attribute. However, this may be processed by Quarto's panel-tabset handler or simply ignored without breaking the document. Leaving as-is since it does not cause a rendering error.
+
+## 6.4 `random = ~(Time-1)|Chick` in mixed model
+
+- **Location:** Line 385, `lme()` call in the Mixed Model section
+- **Status:** Unchanged
+- **Reason:** This specifies a random slope for Time with no random intercept per Chick. A more conventional specification would be `~1|Chick` (random intercept only) or `~1+Time|Chick` (both). However, this appears to be a deliberate modeling choice: the AR(1) correlation structure already captures within-subject dependence, and the random slope captures individual growth-rate variation. The model runs and produces interpretable results. Changing this without consulting the author would alter the pedagogical intent.
+
+## 6.5 Sphericity correction only when ANOVA is significant
+
+- **Location:** Line 253 ("You should ONLY do the following, if the original ANOVA was significant.")
+- **Status:** Unchanged
+- **Reason:** Strictly speaking, sphericity corrections should be applied regardless of the uncorrected result. However, the author's pragmatic reasoning (if the uncorrected test is non-significant, corrections will only make it more so) is logically sound and commonly stated in applied statistics courses. This is a pedagogical simplification, not an error.
+
+## 6.6 "we only need 7 plants in each group!"
+
+- **Location:** Line 415, after `power.t.test(delta=5,power=.80,sd=3)`
+- **Status:** Unchanged
+- **Reason:** `power.t.test` returns n = 7.09. Technically, one should round up to 8 since you cannot have a fraction of a plant. However, the author is reporting the approximate R output, and students will see the actual value when they run the code. This is a minor rounding convention, not an error.
+
+## 6.7 Power analysis total N calculation (97 vs. 99)
+
+- **Location:** Line 453 ("we get that we need 97 observations TOTAL. In this case 11 observations per group would be enough.")
+- **Status:** Unchanged
+- **Reason:** The author states the total is 97 (from v + 8 model df + 1 intercept = 87.17 + 9 ≈ 97) and then says 11 per group is enough (11 × 9 = 99 ≥ 97). The two numbers are consistent: 97 is the minimum needed, and 11 per group (99 total) satisfies that requirement. No change needed.
+
+## 6.8 `u = 1` in `pwr.f2.test` for a 3×3 design
+
+- **Location:** Line 449
+- **Status:** Unchanged
+- **Reason:** The comment explicitly states "I'm assuming you plan to test a 1 df effect," which makes the parameterization intentional. In a 3×3 factorial, individual contrasts or specific comparisons can have 1 df. The total model df (8) is correctly accounted for in the subsequent N calculation. This is a reasonable pedagogical example.
+
+## 6.9 Treatment of `Time` as numeric vs. factor in `aov`
+
+- **Location:** Line 249, `aov(Weight ~ Diet * Time + Error(Chick),...)`
+- **Status:** Unchanged
+- **Reason:** In the chickdata, `Time` is numeric (0, 2, 4, …, 18). In the `aov` model, this treats the Diet×Time interaction as a linear trend interaction rather than a full factorial. The MANOVA and profile analysis sections handle the multi-level time structure separately. The author appears to be intentionally showing multiple modeling approaches. Changing the `aov` call would alter the pedagogical progression.
+
+---
+
+# Summary
+
+| Category                       | Number of Changes |
+|-------------------------------|:-----------------:|
+| Typos / Grammar               |        12         |
+| Formatting / Quarto / LaTeX   |         4         |
+| R Code Fixes                  |         2         |
+| Statistical Correctness        |         5         |
+| Reviewed but Unchanged         |         9         |
+| **Total edits applied**       |      **23**       |
