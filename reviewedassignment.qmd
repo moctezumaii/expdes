@@ -1,5 +1,5 @@
 ---
-title: "Design Assignment"
+title: "Repeated measures, latin square, and others"
 subtitle: "Section 1"
 author: "Dr. Alejandro Molina Moctezuma"
 format:
@@ -23,16 +23,16 @@ execute:
   tidy: true
 ---
 
-# This assignment
-
-This is just the first section of the assignment. The second one (dealing with data) will be uploaded at some point tomorrow (Tuesday 15).
-
 ::: callout-note
 ## Important dates 📆
 
 Friday 4/10/2026: NO CLASS (TAKE HOME EXAM UPLOADED). I can meet with you and help with this current assignment. This assignment is due 4/13
 
-Friday 4/24/2026: Exam due
+Monday 4/13/2026: This assignment due
+
+Friday 4/24/2026 Generalized Linear Models and model selection assignment due
+
+Monday 4/27/2026: Exam due
 :::
 
 # Section 1
@@ -184,9 +184,9 @@ You have 5 cows, and 5 different diet treatments. You want to see if any treatme
 
 ::: callout-warning
 ## Question 6 ✏️
+
 Run an ANOVA and analyze the latin square data. Make sure to include the null hypotheses, the equation of the model, and an interpretation of the results.
 :::
-
 
 ```{r echo=FALSE}
 library(tidyverse)
