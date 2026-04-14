@@ -408,3 +408,64 @@ ggplot(df_pairs, aes(x = expected, y = observed)) +
   ) +
   coord_equal() +
   theme_slide
+
+
+## I want to simulate an example in which we have 3 varieties of soybeans
+## The response variable is yield in kg/ha, and the predictor variable is the variety (A, B, C)
+## We have 4 fields per variety, and it is a CRD
+## However, you measured rainfall in each field
+## Rainfall has an effect on yield (Additive) but it is not part of the experimental design, so it is a covariate
+## Simulate the data, and then run an ANCOVA to test for differences in yield among the varieties while controlling for rainfall
+set.seed(123)
+varieties <- c("A", "B", "C")
+fields <- 1:4
+data_list <- list()
+for (variety in varieties) {
+  for (field in fields) {
+    rainfall <- runif(1, 50, 150) # Rainfall between 50 and 150 mm
+    yield <- 2000 + ifelse(variety == "A", 0, ifelse(variety == "B", 200, 400)) + 5 * rainfall + rnorm(1, mean = 0, sd = 100)
+    data_list[[length(data_list) + 1]] <- data.frame(
+      variety = variety,
+      field = field,
+      rainfall = rainfall,
+      yield = yield
+    )
+  }
+}
+
+soybean_data <- do.call(rbind, data_list)
+## Run ANCOVA
+ancova_model <- aov(yield ~ variety + rainfall, data = soybean_data)
+summary(ancova_model)
+
+## Run as a linear model to get estimated marginal means
+lm_model <- lm(yield ~ variety + rainfall, data = soybean_data)
+summary(lm_model)
+anova(lm_model)
+
+## Plot the real data with regression lines for each variety
+## Add confidence intervals for the regression lines
+## Use predict function to use additive model to predict yield across a range of rainfall values for each variety, and plot these predictions with confidence intervals
+library(ggplot2)
+library(dplyr)
+# Create a new dataset for predictions
+rainfall_seq <- seq(min(soybean_data$rainfall), max(soybean_data$rainfall), length.out = 100)
+pred_data <- expand.grid(
+  variety = varieties,
+  rainfall = rainfall_seq
+)
+pred_data$yield <- predict(lm_model, newdata = pred_data, interval = "confidence")[, "fit"]
+pred_data$lower <- predict(lm_model, newdata = pred_data, interval = "confidence")[, "lwr"]
+pred_data$upper <- predict(lm_model, newdata = pred_data, interval = "confidence")[, "upr"]
+
+ggplot(soybean_data, aes(x = rainfall, y = yield, color = variety)) +
+  geom_point(size = 3) +
+  geom_line(data = pred_data, aes(x = rainfall, y = yield), size = 1) +
+  geom_ribbon(data = pred_data, aes(x = rainfall, ymin = lower, ymax = upper), alpha = 0.2) +
+  labs(
+    x = "Rainfall (mm)",
+    y = "Yield (kg/ha)",
+    title = "Soybean Yield by Variety and Rainfall",
+    subtitle = "Lines show predicted yield with confidence intervals"
+  ) +
+  theme_classic()
