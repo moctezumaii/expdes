@@ -1,0 +1,277 @@
+---
+title: "Assumption Checking, Transformations & Intro to GLMs"
+author: "PLSC 571 — Experimental Design"
+format: html
+editor: visual
+---
+
+```{r setup, include=FALSE}
+# Load all required libraries up front
+library(car)      # for Anova() Type II/III
+library(ggplot2)  # for plotting
+```
+
+## Overview
+
+This in-class coding activity has **three sections**. All code is provided — your
+job is to **run the code, look at the output, and answer the discussion questions
+on Canvas**.
+
+You will **not** write any code today. Read the prompts, run each chunk in order,
+and submit your answers through Canvas.
+
+------------------------------------------------------------------------
+
+# Section 1 — Assumption Checking (~7 min)
+
+We will work with a crop-yield dataset. Four wheat varieties (*Alpha*,
+*Beta*, *Gamma*, *Delta*) were grown at different nitrogen application
+rates. The response variable is **yield (kg/ha)**.
+
+### Load the data and fit a linear model
+
+```{r load-data1}
+# Read the yield dataset
+yield_data <- read.csv("data/yield_transform_dataset.csv")
+
+# Make variety a factor
+yield_data$variety <- as.factor(yield_data$variety)
+
+# Quick look at the data
+str(yield_data)
+summary(yield_data)
+```
+
+```{r fit-raw-model}
+# Fit a linear model on the RAW (untransformed) yield
+raw_model <- lm(yield_kgha ~ nitrogen_kg_ha * variety, data = yield_data)
+summary(raw_model)
+```
+
+### Residual diagnostics
+
+```{r diagnostics-raw, fig.width=8, fig.height=4}
+# Side-by-side diagnostic plots
+par(mfrow = c(1, 2))
+
+# QQ plot — checks normality of residuals
+qqnorm(resid(raw_model), main = "Normal Q-Q Plot (Raw Model)")
+qqline(resid(raw_model), col = "red")
+
+# Residuals vs Fitted — checks linearity & constant variance
+plot(fitted(raw_model), resid(raw_model),
+     xlab = "Fitted values", ylab = "Residuals",
+     main = "Residuals vs Fitted (Raw Model)")
+abline(h = 0, col = "red", lty = 2)
+
+par(mfrow = c(1, 1))
+```
+
+### 📋 Canvas Question (Section 1)
+
+> **In 1–2 sentences: What assumption of the linear model is violated,
+> and how can you tell from the diagnostic plots?**
+>
+> *(Submit your answer on Canvas — do not write it here.)*
+
+------------------------------------------------------------------------
+
+## 🛑 Stop Point 1
+
+*Pause here — the instructor will lead a brief discussion before we
+continue.*
+
+------------------------------------------------------------------------
+
+# Section 2 — Transformation & Re-check (~8 min)
+
+The residual-vs-fitted plot above likely showed a **fan shape**
+(variance increasing with the mean) and possibly some curvature. This is
+classic **heteroscedasticity with multiplicative errors** — exactly the
+situation where a **log transformation** helps.
+
+### Apply a log transformation and re-fit
+
+```{r transform-refit}
+# Log-transform the response
+yield_data$log_yield <- log(yield_data$yield_kgha)
+
+# Re-fit the same model structure on log(yield)
+log_model <- lm(log_yield ~ nitrogen_kg_ha * variety, data = yield_data)
+summary(log_model)
+```
+
+### Re-run diagnostics on the transformed model
+
+```{r diagnostics-log, fig.width=8, fig.height=4}
+par(mfrow = c(1, 2))
+
+qqnorm(resid(log_model), main = "Normal Q-Q Plot (Log Model)")
+qqline(resid(log_model), col = "blue")
+
+plot(fitted(log_model), resid(log_model),
+     xlab = "Fitted values", ylab = "Residuals",
+     main = "Residuals vs Fitted (Log Model)")
+abline(h = 0, col = "blue", lty = 2)
+
+par(mfrow = c(1, 1))
+```
+
+Notice that the fan shape is **reduced** and the QQ plot is closer to
+the diagonal. The transformation is doing its job.
+
+### ANOVA — Type I, Type II, and Type III
+
+Because the design is **unbalanced** (different sample sizes per
+variety) and the model includes an **interaction**, the choice of
+sum-of-squares type matters. Below are all three. **Your task: pick the
+correct one, delete or comment out the other two, and justify your
+choice on Canvas.**
+
+```{r anova-types}
+# ------ Type I (sequential) SS ------
+# Order of terms matters; results depend on which predictor is entered first.
+cat("===== Type I SS (sequential) =====\n")
+anova(log_model)
+
+# ------ Type II SS ------
+# Each main effect tested after the other main effect, ignoring the interaction.
+cat("\n===== Type II SS =====\n")
+Anova(log_model, type = "II")
+
+# ------ Type III SS ------
+# Each term tested after ALL other terms (including the interaction).
+# Requires setting contrasts to sum-to-zero for valid results.
+cat("\n===== Type III SS =====\n")
+options(contrasts = c("contr.sum", "contr.poly"))
+log_model_t3 <- lm(log_yield ~ nitrogen_kg_ha * variety, data = yield_data)
+Anova(log_model_t3, type = "III")
+```
+
+### 📋 Canvas Questions (Section 2)
+
+> 1.  **Which ANOVA type is most appropriate here, and why?** *(Hint:
+>     think about the study design — is it balanced? Is the interaction
+>     important?)*
+>
+> 2.  **Is the interaction between nitrogen and variety statistically
+>     significant?** Look at the ANOVA table you chose and report the
+>     p-value.
+>
+> *(Submit your answers on Canvas — do not write them here.)*
+
+------------------------------------------------------------------------
+
+## 🛑 Stop Point 2
+
+*Pause here — the instructor will reveal the correct answer and discuss
+why Type III is the right choice for an unbalanced design with a
+significant interaction.*
+
+------------------------------------------------------------------------
+
+# Section 3 — The Wrong Model (~8 min)
+
+Now we switch to a **completely different dataset**: seed sprouting. We
+recorded whether each seed sprouted (1) or not (0), along with the
+seed's size in millimeters.
+
+**The question**: Does seed size predict the probability of sprouting?
+
+### Load the sprouting data and fit a linear model
+
+```{r load-data2}
+# Read the sprouting dataset
+sprout_data <- read.csv("data/seed_sprouting.csv")
+
+# Quick look
+str(sprout_data)
+table(sprout_data$sprout)
+```
+
+```{r fit-lm-binary}
+# Fit a LINEAR model to the binary outcome — this is intentionally wrong!
+wrong_model <- lm(sprout ~ seed_size_mm, data = sprout_data)
+summary(wrong_model)
+```
+
+### Plot: predictions from the linear model
+
+```{r plot-wrong-model, fig.width=7, fig.height=5}
+# Create a sequence of seed sizes for prediction
+new_sizes <- data.frame(seed_size_mm = seq(0, 14, by = 0.1))
+
+# Predict with 95% confidence interval
+preds <- predict(wrong_model, newdata = new_sizes, interval = "confidence")
+new_sizes <- cbind(new_sizes, preds)
+
+# Plot the observed data and the linear predictions
+plot(sprout_data$seed_size_mm, sprout_data$sprout,
+     pch = 16, col = rgb(0, 0, 0, 0.4),
+     xlab = "Seed Size (mm)", ylab = "Sprouted (0/1)",
+     main = "Linear Model Predictions for Binary Outcome",
+     ylim = c(-0.3, 1.5))
+
+# Add the fitted line and confidence band
+lines(new_sizes$seed_size_mm, new_sizes$fit, col = "red", lwd = 2)
+lines(new_sizes$seed_size_mm, new_sizes$lwr, col = "red", lty = 2)
+lines(new_sizes$seed_size_mm, new_sizes$upr, col = "red", lty = 2)
+
+# Reference lines at 0 and 1
+abline(h = 0, col = "grey50", lty = 3)
+abline(h = 1, col = "grey50", lty = 3)
+
+legend("topleft",
+       legend = c("Observed", "Fitted (lm)", "95% CI"),
+       pch = c(16, NA, NA), lty = c(NA, 1, 2), col = c("black", "red", "red"),
+       bty = "n")
+```
+
+### Diagnostics for the wrong model
+
+```{r diagnostics-wrong, fig.width=8, fig.height=4}
+par(mfrow = c(1, 2))
+
+qqnorm(resid(wrong_model), main = "Normal Q-Q Plot (Linear on 0/1)")
+qqline(resid(wrong_model), col = "red")
+
+plot(fitted(wrong_model), resid(wrong_model),
+     xlab = "Fitted values", ylab = "Residuals",
+     main = "Residuals vs Fitted (Linear on 0/1)")
+abline(h = 0, col = "red", lty = 2)
+
+par(mfrow = c(1, 1))
+```
+
+Look at the residual plot — you should see **two distinct bands** of
+residuals (one for sprout = 0, one for sprout = 1). This is a hallmark
+of fitting a continuous model to binary data.
+
+### 📋 Canvas Questions (Section 3)
+
+> 1.  **What range do the fitted values fall in — is that a problem?**
+>     *(Look at the prediction plot. Do any predicted "probabilities" go
+>     below 0 or above 1?)*
+>
+> 2.  **What does the residual plot look like — does it meet the
+>     assumptions of a linear model?** *(Describe what you see.)*
+>
+> 3.  **What kind of model should we use instead, and why?** *(Hint:
+>     think about what family of models is designed for binary
+>     outcomes.)*
+>
+> *(Submit your answers on Canvas — do not write them here.)*
+
+------------------------------------------------------------------------
+
+## 🛑 Stop Point 3 — Wrap-up
+
+*The instructor will discuss:*
+
+-   *Why `lm()` fails for binary outcomes*
+-   *What a **generalized linear model (GLM)** is — specifically
+    **logistic regression** (`glm()` with `family = binomial`)*
+-   *How the logit link function keeps predicted probabilities inside
+    \[0, 1\]*
+
+We will fit GLMs properly in the next class session.
