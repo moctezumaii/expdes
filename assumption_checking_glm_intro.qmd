@@ -165,9 +165,31 @@ Anova(log_model_t3, type = "III")
 
 ------------------------------------------------------------------------
 
-## 🛑 Stop Point 2
+## 🛑 Stop Point 2.1
 
 *Pause here*
+
+Should we do a Posthoc?
+
+The groups are not different! But there is an interaction.
+
+Are the slopes different?
+
+```{r}
+library(emmeans)
+emtrends(log_model_t3, pairwise ~ variety, var = "nitrogen_kg_ha")
+```
+
+“Do varieties differ at 0, 50, and 100 kg/ha nitrogen?”
+
+```{r}
+emm <- emmeans(log_model_t3, ~ variety | nitrogen_kg_ha,
+               at = list(nitrogen_kg_ha = c(0, 50, 100)))
+
+pairs(emm, adjust = "tukey")
+```
+
+## 🛑 Stop Point 2.2
 
 ------------------------------------------------------------------------
 
