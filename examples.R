@@ -461,11 +461,36 @@ pred_data$upper <- predict(lm_model, newdata = pred_data, interval = "confidence
 ggplot(soybean_data, aes(x = rainfall, y = yield, color = variety)) +
   geom_point(size = 3) +
   geom_line(data = pred_data, aes(x = rainfall, y = yield), size = 1) +
-  geom_ribbon(data = pred_data, aes(x = rainfall, ymin = lower, ymax = upper), alpha = 0.2) +
   labs(
     x = "Rainfall (mm)",
     y = "Yield (kg/ha)",
     title = "Soybean Yield by Variety and Rainfall",
+    subtitle = "Lines show predicted yield with confidence intervals"
+  ) +
+  theme_classic()
+
+
+
+lm_model <- lm(yield ~ variety * rainfall, data = soybean_data)
+summary(lm_model)
+
+#plot the model with interaction
+# I will use the same method as before to create a new dataset for predictions, but now I will include the interaction term in the model
+pred_data_interaction <- expand.grid(
+  variety = varieties,
+  rainfall = rainfall_seq
+)
+pred_data_interaction$yield <- predict(lm_model, newdata = pred_data_interaction, interval = "confidence")[, "fit"]
+pred_data_interaction$lower <- predict(lm_model, newdata = pred_data_interaction, interval = "confidence")[, "lwr"]
+pred_data_interaction$upper <- predict(lm_model, newdata = pred_data_interaction, interval = "confidence")[, "upr"]
+
+ggplot(soybean_data, aes(x = rainfall, y = yield, color = variety)) +
+  geom_point(size = 3) +
+  geom_line(data = pred_data_interaction, aes(x = rainfall, y = yield), size = 1) +
+  labs(
+    x = "Rainfall (mm)",
+    y = "Yield (kg/ha)",
+    title = "Soybean Yield by Variety and Rainfall with Interaction",
     subtitle = "Lines show predicted yield with confidence intervals"
   ) +
   theme_classic()
