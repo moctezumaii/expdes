@@ -186,14 +186,14 @@ The groups are not different! But there is an interaction.
 
 Are the slopes different?
 
-```{r}
+```{r, output =TRUE}
 library(emmeans)
 emtrends(log_model_t3, pairwise ~ variety, var = "nitrogen_kg_ha")
 ```
 
 “Do varieties differ at 0, 50, and 100 kg/ha nitrogen?”
 
-```{r}
+```{r, output =TRUE}
 emm <- emmeans(log_model_t3, ~ variety | nitrogen_kg_ha,
                at = list(nitrogen_kg_ha = c(0, 50, 100)))
 
@@ -212,7 +212,7 @@ Now we switch to a completely different dataset: seed sprouting. We recorded whe
 
 ### Load the sprouting data and fit a linear model
 
-```{r load-data2}
+```{r load-data2, output =TRUE}
 # Read the sprouting dataset
 sprout_data <- read.csv("seed_sprouting.csv")
 
@@ -221,7 +221,7 @@ str(sprout_data)
 table(sprout_data$sprout)
 ```
 
-```{r fit-lm-binary}
+```{r fit-lm-binary, output =TRUE}
 # Fit a LINEAR model to the binary outcome — this is intentionally wrong!
 wrong_model <- lm(sprout ~ seed_size_mm, data = sprout_data)
 summary(wrong_model)
@@ -229,7 +229,7 @@ summary(wrong_model)
 
 ### Plot: predictions from the linear model
 
-```{r plot-wrong-model, fig.width=7, fig.height=5}
+```{r plot-wrong-model, fig.width=7, fig.height=5, output =TRUE}
 # Create a sequence of seed sizes for prediction
 new_sizes <- data.frame(seed_size_mm = seq(0, 14, by = 0.1))
 
@@ -261,9 +261,9 @@ legend("topleft",
 
 ### Diagnostics for the wrong model
 
-```{r diagnostics-wrong, fig.width=8, fig.height=4}
-par(mfrow = c(1, 2))
+```{r diagnostics-wrong, fig.width=8, fig.height=4, output =TRUE}
 
+par(mfrow = c(1, 1))
 qqnorm(resid(wrong_model), main = "Normal Q-Q Plot (Linear on 0/1)")
 qqline(resid(wrong_model), col = "red")
 
@@ -272,7 +272,7 @@ plot(fitted(wrong_model), resid(wrong_model),
      main = "Residuals vs Fitted (Linear on 0/1)")
 abline(h = 0, col = "red", lty = 2)
 
-par(mfrow = c(1, 1))
+
 ```
 
 Look at the residual plot: you should see two distinct bands of residuals (one for sprout = 0, one for sprout = 1). This is a hallmark of fitting a continuous model to binary data.
@@ -386,7 +386,7 @@ In a coin toss with 0.5 probability, the odds ratio is: $\frac{0.5}{1-0.5} = 1$.
 
 Let's imagine the probability of getting a 5 after rolling one die. The probability of this event is $\frac{1}{6}$, so, the odds are:
 
-```{r}
+```{r output =TRUE}
 (1/6)/(5/6)
 ```
 
@@ -394,7 +394,7 @@ The odds are 0.2. This means you will see 0.2 successes for every failure (or on
 
 Finally, let's think of the odds of me (Alejandro) seeing a car accident during my daily drive to and from campus). I know this is biased, and one semester I will actually sample this for an exercise, but my very biased estimate says the probability is 0.8 (80% chance of seeing one). If this was true, then the odds would be:
 
-```{r}
+```{r output =TRUE}
 0.8/(1-0.8)
 
 ```
@@ -407,13 +407,13 @@ Odds are always "positive". But the transformation need to potentially be from -
 
 Let's imagine the probability of winning the lottery is 0.000000000065789. Then, the log odds would be:
 
-```{r}
+```{r output =TRUE}
 log(6.5789e-11/(1-6.5789e-11))
 ```
 
 -23.44. And if we had an event with high odds (like the accident one):
 
-```{r}
+```{r output =TRUE}
 log(0.8/(1-0.8))
 ```
 

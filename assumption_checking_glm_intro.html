@@ -406,13 +406,64 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(emmeans)</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">emtrends</span>(log_model_t3, pairwise <span class="sc">~</span> variety, <span class="at">var =</span> <span class="st">"nitrogen_kg_ha"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$emtrends
+ variety nitrogen_kg_ha.trend       SE df  lower.CL upper.CL
+ Alpha                0.00300 0.000565 77  1.87e-03  0.00412
+ Beta                 0.00715 0.000731 77  5.69e-03  0.00861
+ Delta                0.00868 0.000807 77  7.07e-03  0.01029
+ Gamma                0.00140 0.000725 77 -4.07e-05  0.00285
+
+Confidence level used: 0.95 
+
+$contrasts
+ contrast      estimate       SE df t.ratio p.value
+ Alpha - Beta  -0.00415 0.000924 77  -4.492  0.0001
+ Alpha - Delta -0.00568 0.000985 77  -5.767 &lt;0.0001
+ Alpha - Gamma  0.00159 0.000920 77   1.734  0.3134
+ Beta - Delta  -0.00153 0.001090 77  -1.405  0.5004
+ Beta - Gamma   0.00575 0.001030 77   5.580 &lt;0.0001
+ Delta - Gamma  0.00728 0.001080 77   6.707 &lt;0.0001
+
+P value adjustment: tukey method for comparing a family of 4 estimates </code></pre>
+</div>
 </div>
 <p>“Do varieties differ at 0, 50, and 100 kg/ha nitrogen?”</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>emm <span class="ot">&lt;-</span> <span class="fu">emmeans</span>(log_model_t3, <span class="sc">~</span> variety <span class="sc">|</span> nitrogen_kg_ha,</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>               <span class="at">at =</span> <span class="fu">list</span>(<span class="at">nitrogen_kg_ha =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">50</span>, <span class="dv">100</span>)))</span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="fu">pairs</span>(emm, <span class="at">adjust =</span> <span class="st">"tukey"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>emm <span class="ot">&lt;-</span> <span class="fu">emmeans</span>(log_model_t3, <span class="sc">~</span> variety <span class="sc">|</span> nitrogen_kg_ha,</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>               <span class="at">at =</span> <span class="fu">list</span>(<span class="at">nitrogen_kg_ha =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">50</span>, <span class="dv">100</span>)))</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="fu">pairs</span>(emm, <span class="at">adjust =</span> <span class="st">"tukey"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>nitrogen_kg_ha =   0:
+ contrast      estimate     SE df t.ratio p.value
+ Alpha - Beta   -0.0758 0.1080 77  -0.699  0.8972
+ Alpha - Delta  -0.1232 0.1230 77  -1.005  0.7469
+ Alpha - Gamma   0.1335 0.1190 77   1.121  0.6778
+ Beta - Delta   -0.0474 0.1340 77  -0.355  0.9845
+ Beta - Gamma    0.2094 0.1300 77   1.606  0.3812
+ Delta - Gamma   0.2568 0.1420 77   1.804  0.2793
+
+nitrogen_kg_ha =  50:
+ contrast      estimate     SE df t.ratio p.value
+ Alpha - Beta   -0.2834 0.0701 77  -4.042  0.0007
+ Alpha - Delta  -0.4073 0.0815 77  -5.001 &lt;0.0001
+ Alpha - Gamma   0.2133 0.0803 77   2.657  0.0463
+ Beta - Delta   -0.1239 0.0876 77  -1.414  0.4947
+ Beta - Gamma    0.4967 0.0865 77   5.741 &lt;0.0001
+ Delta - Gamma   0.6206 0.0959 77   6.469 &lt;0.0001
+
+nitrogen_kg_ha = 100:
+ contrast      estimate     SE df t.ratio p.value
+ Alpha - Beta   -0.4911 0.0484 77 -10.155 &lt;0.0001
+ Alpha - Delta  -0.6914 0.0556 77 -12.439 &lt;0.0001
+ Alpha - Gamma   0.2930 0.0540 77   5.422 &lt;0.0001
+ Beta - Delta   -0.2004 0.0588 77  -3.409  0.0056
+ Beta - Gamma    0.7841 0.0573 77  13.680 &lt;0.0001
+ Delta - Gamma   0.9844 0.0635 77  15.496 &lt;0.0001
+
+P value adjustment: tukey method for comparing a family of 4 estimates </code></pre>
+</div>
 </div>
 </section>
 <section id="stop-point-2.2" class="level2">
@@ -427,64 +478,112 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <section id="load-the-sprouting-data-and-fit-a-linear-model" class="level3">
 <h3 class="anchored" data-anchor-id="load-the-sprouting-data-and-fit-a-linear-model">Load the sprouting data and fit a linear model</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the sprouting dataset</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>sprout_data <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"seed_sprouting.csv"</span>)</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Quick look</span></span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(sprout_data)</span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(sprout_data<span class="sc">$</span>sprout)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the sprouting dataset</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>sprout_data <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"seed_sprouting.csv"</span>)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Quick look</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(sprout_data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>'data.frame':   120 obs. of  2 variables:
+ $ seed_size_mm: num  3.2 3.36 1.29 3.93 10.07 ...
+ $ sprout      : int  0 0 0 1 1 0 0 0 1 1 ...</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(sprout_data<span class="sc">$</span>sprout)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+ 0  1 
+47 73 </code></pre>
+</div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit a LINEAR model to the binary outcome — this is intentionally wrong!</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>wrong_model <span class="ot">&lt;-</span> <span class="fu">lm</span>(sprout <span class="sc">~</span> seed_size_mm, <span class="at">data =</span> sprout_data)</span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(wrong_model)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit a LINEAR model to the binary outcome — this is intentionally wrong!</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>wrong_model <span class="ot">&lt;-</span> <span class="fu">lm</span>(sprout <span class="sc">~</span> seed_size_mm, <span class="at">data =</span> sprout_data)</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(wrong_model)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = sprout ~ seed_size_mm, data = sprout_data)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.55760 -0.19430 -0.02072  0.19939  0.76427 
+
+Coefficients:
+              Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)  -0.205879   0.059647  -3.452 0.000774 ***
+seed_size_mm  0.128748   0.008478  15.187  &lt; 2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.2864 on 118 degrees of freedom
+Multiple R-squared:  0.6615,    Adjusted R-squared:  0.6587 
+F-statistic: 230.6 on 1 and 118 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
 </div>
 </section>
 <section id="plot-predictions-from-the-linear-model" class="level3">
 <h3 class="anchored" data-anchor-id="plot-predictions-from-the-linear-model">Plot: predictions from the linear model</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a sequence of seed sizes for prediction</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>new_sizes <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">seed_size_mm =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">14</span>, <span class="at">by =</span> <span class="fl">0.1</span>))</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Predict with 95% confidence interval</span></span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">&lt;-</span> <span class="fu">predict</span>(wrong_model, <span class="at">newdata =</span> new_sizes, <span class="at">interval =</span> <span class="st">"confidence"</span>)</span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>new_sizes <span class="ot">&lt;-</span> <span class="fu">cbind</span>(new_sizes, preds)</span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the observed data and the linear predictions</span></span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sprout_data<span class="sc">$</span>seed_size_mm, sprout_data<span class="sc">$</span>sprout,</span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>     <span class="at">pch =</span> <span class="dv">16</span>, <span class="at">col =</span> <span class="fu">rgb</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="fl">0.4</span>),</span>
-<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">"Seed Size (mm)"</span>, <span class="at">ylab =</span> <span class="st">"Sprouted (0/1)"</span>,</span>
-<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Linear Model Predictions for Binary Outcome"</span>,</span>
-<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.3</span>, <span class="fl">1.5</span>))</span>
-<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Add the fitted line and confidence band</span></span>
-<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(new_sizes<span class="sc">$</span>seed_size_mm, new_sizes<span class="sc">$</span>fit, <span class="at">col =</span> <span class="st">"red"</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
-<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(new_sizes<span class="sc">$</span>seed_size_mm, new_sizes<span class="sc">$</span>lwr, <span class="at">col =</span> <span class="st">"red"</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span>
-<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(new_sizes<span class="sc">$</span>seed_size_mm, new_sizes<span class="sc">$</span>upr, <span class="at">col =</span> <span class="st">"red"</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span>
-<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Reference lines at 0 and 1</span></span>
-<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="st">"grey50"</span>, <span class="at">lty =</span> <span class="dv">3</span>)</span>
-<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> <span class="dv">1</span>, <span class="at">col =</span> <span class="st">"grey50"</span>, <span class="at">lty =</span> <span class="dv">3</span>)</span>
-<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topleft"</span>,</span>
-<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>       <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">"Observed"</span>, <span class="st">"Fitted (lm)"</span>, <span class="st">"95% CI"</span>),</span>
-<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>       <span class="at">pch =</span> <span class="fu">c</span>(<span class="dv">16</span>, <span class="cn">NA</span>, <span class="cn">NA</span>), <span class="at">lty =</span> <span class="fu">c</span>(<span class="cn">NA</span>, <span class="dv">1</span>, <span class="dv">2</span>), <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"black"</span>, <span class="st">"red"</span>, <span class="st">"red"</span>),</span>
-<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a>       <span class="at">bty =</span> <span class="st">"n"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a sequence of seed sizes for prediction</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>new_sizes <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">seed_size_mm =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">14</span>, <span class="at">by =</span> <span class="fl">0.1</span>))</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Predict with 95% confidence interval</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">&lt;-</span> <span class="fu">predict</span>(wrong_model, <span class="at">newdata =</span> new_sizes, <span class="at">interval =</span> <span class="st">"confidence"</span>)</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>new_sizes <span class="ot">&lt;-</span> <span class="fu">cbind</span>(new_sizes, preds)</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the observed data and the linear predictions</span></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sprout_data<span class="sc">$</span>seed_size_mm, sprout_data<span class="sc">$</span>sprout,</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>     <span class="at">pch =</span> <span class="dv">16</span>, <span class="at">col =</span> <span class="fu">rgb</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="fl">0.4</span>),</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">"Seed Size (mm)"</span>, <span class="at">ylab =</span> <span class="st">"Sprouted (0/1)"</span>,</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Linear Model Predictions for Binary Outcome"</span>,</span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.3</span>, <span class="fl">1.5</span>))</span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Add the fitted line and confidence band</span></span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(new_sizes<span class="sc">$</span>seed_size_mm, new_sizes<span class="sc">$</span>fit, <span class="at">col =</span> <span class="st">"red"</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(new_sizes<span class="sc">$</span>seed_size_mm, new_sizes<span class="sc">$</span>lwr, <span class="at">col =</span> <span class="st">"red"</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(new_sizes<span class="sc">$</span>seed_size_mm, new_sizes<span class="sc">$</span>upr, <span class="at">col =</span> <span class="st">"red"</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Reference lines at 0 and 1</span></span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="st">"grey50"</span>, <span class="at">lty =</span> <span class="dv">3</span>)</span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> <span class="dv">1</span>, <span class="at">col =</span> <span class="st">"grey50"</span>, <span class="at">lty =</span> <span class="dv">3</span>)</span>
+<span id="cb28-23"><a href="#cb28-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-24"><a href="#cb28-24" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topleft"</span>,</span>
+<span id="cb28-25"><a href="#cb28-25" aria-hidden="true" tabindex="-1"></a>       <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">"Observed"</span>, <span class="st">"Fitted (lm)"</span>, <span class="st">"95% CI"</span>),</span>
+<span id="cb28-26"><a href="#cb28-26" aria-hidden="true" tabindex="-1"></a>       <span class="at">pch =</span> <span class="fu">c</span>(<span class="dv">16</span>, <span class="cn">NA</span>, <span class="cn">NA</span>), <span class="at">lty =</span> <span class="fu">c</span>(<span class="cn">NA</span>, <span class="dv">1</span>, <span class="dv">2</span>), <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"black"</span>, <span class="st">"red"</span>, <span class="st">"red"</span>),</span>
+<span id="cb28-27"><a href="#cb28-27" aria-hidden="true" tabindex="-1"></a>       <span class="at">bty =</span> <span class="st">"n"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="assumption_checking_glm_intro_files/figure-html/plot-wrong-model-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
 </div>
 </section>
 <section id="diagnostics-for-the-wrong-model" class="level3">
 <h3 class="anchored" data-anchor-id="diagnostics-for-the-wrong-model">Diagnostics for the wrong model</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>))</span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="fu">qqnorm</span>(<span class="fu">resid</span>(wrong_model), <span class="at">main =</span> <span class="st">"Normal Q-Q Plot (Linear on 0/1)"</span>)</span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="fu">qqline</span>(<span class="fu">resid</span>(wrong_model), <span class="at">col =</span> <span class="st">"red"</span>)</span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">fitted</span>(wrong_model), <span class="fu">resid</span>(wrong_model),</span>
-<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">"Fitted values"</span>, <span class="at">ylab =</span> <span class="st">"Residuals"</span>,</span>
-<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Residuals vs Fitted (Linear on 0/1)"</span>)</span>
-<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="st">"red"</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>))</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="fu">qqnorm</span>(<span class="fu">resid</span>(wrong_model), <span class="at">main =</span> <span class="st">"Normal Q-Q Plot (Linear on 0/1)"</span>)</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="fu">qqline</span>(<span class="fu">resid</span>(wrong_model), <span class="at">col =</span> <span class="st">"red"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="assumption_checking_glm_intro_files/figure-html/diagnostics-wrong-1.png" class="img-fluid figure-img" width="768"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">fitted</span>(wrong_model), <span class="fu">resid</span>(wrong_model),</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">"Fitted values"</span>, <span class="at">ylab =</span> <span class="st">"Residuals"</span>,</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Residuals vs Fitted (Linear on 0/1)"</span>)</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="st">"red"</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="assumption_checking_glm_intro_files/figure-html/diagnostics-wrong-2.png" class="img-fluid figure-img" width="768"></p>
+</figure>
+</div>
+</div>
 </div>
 <p>Look at the residual plot: you should see two distinct bands of residuals (one for sprout = 0, one for sprout = 1). This is a hallmark of fitting a continuous model to binary data.</p>
 </section>
@@ -623,29 +722,41 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <p>In a coin toss with 0.5 probability, the odds ratio is: <span class="math inline">\(\frac{0.5}{1-0.5} = 1\)</span>. We can interpret this as the odds of getting a success (or head) is 1:1 (think 1 to 1, or 50-50)</p>
 <p>Let’s imagine the probability of getting a 5 after rolling one die. The probability of this event is <span class="math inline">\(\frac{1}{6}\)</span>, so, the odds are:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>(<span class="dv">1</span><span class="sc">/</span><span class="dv">6</span>)<span class="sc">/</span>(<span class="dv">5</span><span class="sc">/</span><span class="dv">6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>(<span class="dv">1</span><span class="sc">/</span><span class="dv">6</span>)<span class="sc">/</span>(<span class="dv">5</span><span class="sc">/</span><span class="dv">6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.2</code></pre>
+</div>
 </div>
 <p>The odds are 0.2. This means you will see 0.2 successes for every failure (or one success for every 5 failures).</p>
 <p>Finally, let’s think of the odds of me (Alejandro) seeing a car accident during my daily drive to and from campus). I know this is biased, and one semester I will actually sample this for an exercise, but my very biased estimate says the probability is 0.8 (80% chance of seeing one). If this was true, then the odds would be:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fl">0.8</span><span class="sc">/</span>(<span class="dv">1</span><span class="fl">-0.8</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fl">0.8</span><span class="sc">/</span>(<span class="dv">1</span><span class="fl">-0.8</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 4</code></pre>
+</div>
 </div>
 <p>Four. Again, think of this as four to one. If I drove five times, I would see an accident 4 times, and “no accidents” one time.</p>
 <p>OK, that was a lot of time spent on odds. And the reason I did that, is that my brain struggles thinking in odds rather than probabilities. Which is why we want to present the results in a probabilistic scale. However, this concept is important to understand how it is estimated.</p>
 <p>Odds are always “positive”. But the transformation need to potentially be from -inf to inf. Similar to what we do with counts, then we take the log of the odds.</p>
 <p>Let’s imagine the probability of winning the lottery is 0.000000000065789. Then, the log odds would be:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">log</span>(<span class="fl">6.5789e-11</span><span class="sc">/</span>(<span class="dv">1</span><span class="fl">-6.5789e-11</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">log</span>(<span class="fl">6.5789e-11</span><span class="sc">/</span>(<span class="dv">1</span><span class="fl">-6.5789e-11</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -23.44457</code></pre>
+</div>
 </div>
 <p>-23.44. And if we had an event with high odds (like the accident one):</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">log</span>(<span class="fl">0.8</span><span class="sc">/</span>(<span class="dv">1</span><span class="fl">-0.8</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">log</span>(<span class="fl">0.8</span><span class="sc">/</span>(<span class="dv">1</span><span class="fl">-0.8</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1.386294</code></pre>
+</div>
 </div>
 <p>Here you can see how values higher than 1 (p higher than 0.5) will be positive, and odds lower than 1 (p lower than 0.5) will be negative.</p>
 <p>Actually, we can plot the relationship between p (probability) and logit(pi):</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>pi <span class="ot">=</span> <span class="fu">seq</span>(<span class="fl">0.0001</span>,<span class="dv">1</span><span class="fl">-0.0001</span>, <span class="at">by=</span><span class="fl">0.0001</span>)</span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(pi<span class="sc">~</span><span class="fu">qlogis</span>(pi), <span class="at">type=</span><span class="st">"l"</span>,<span class="at">xlab=</span><span class="st">"logit(p)"</span>,<span class="at">ylab=</span><span class="st">"p"</span>); <span class="fu">abline</span>(<span class="at">v=</span><span class="dv">0</span>, <span class="at">lty=</span><span class="st">"dashed"</span>); <span class="fu">abline</span>(<span class="at">h=</span><span class="fl">0.5</span>, <span class="at">lty=</span><span class="st">"dashed"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>pi <span class="ot">=</span> <span class="fu">seq</span>(<span class="fl">0.0001</span>,<span class="dv">1</span><span class="fl">-0.0001</span>, <span class="at">by=</span><span class="fl">0.0001</span>)</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(pi<span class="sc">~</span><span class="fu">qlogis</span>(pi), <span class="at">type=</span><span class="st">"l"</span>,<span class="at">xlab=</span><span class="st">"logit(p)"</span>,<span class="at">ylab=</span><span class="st">"p"</span>); <span class="fu">abline</span>(<span class="at">v=</span><span class="dv">0</span>, <span class="at">lty=</span><span class="st">"dashed"</span>); <span class="fu">abline</span>(<span class="at">h=</span><span class="fl">0.5</span>, <span class="at">lty=</span><span class="st">"dashed"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>What I want you to take away from this whole section is the following:</p>
 <div class="callout callout-style-default callout-tip callout-titled">
@@ -668,32 +779,32 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <h3 class="anchored" data-anchor-id="right-model">Right model</h3>
 <p>Let’s run the right model for the seed sprouting data:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>logistic_model <span class="ot">&lt;-</span> <span class="fu">glm</span>(sprout <span class="sc">~</span> seed_size_mm, <span class="at">data =</span> sprout_data, <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">"logit"</span>))</span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(logistic_model)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>logistic_model <span class="ot">&lt;-</span> <span class="fu">glm</span>(sprout <span class="sc">~</span> seed_size_mm, <span class="at">data =</span> sprout_data, <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">"logit"</span>))</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(logistic_model)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>And lets plot the predictions. We will use predict and the inverse link function to get the predicted probabilities. Remember <code>plogis()</code> is the inverse link function for the logit link.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a sequence of seed sizes for prediction</span></span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Predict with 95% confidence interval on the link scale</span></span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="co"># I will use the same dataframe</span></span>
-<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">&lt;-</span> <span class="fu">predict.glm</span>(logistic_model, sprout_data, <span class="at">se.fit =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate the confidence intervals on the link scale</span></span>
-<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>ci_lwr <span class="ot">&lt;-</span><span class="fu">with</span>(preds, <span class="fu">plogis</span>(fit <span class="sc">-</span> <span class="fl">1.96</span> <span class="sc">*</span> se.fit))</span>
-<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>ci_upr <span class="ot">&lt;-</span><span class="fu">with</span>(preds, <span class="fu">plogis</span>(fit <span class="sc">+</span> <span class="fl">1.96</span> <span class="sc">*</span> se.fit))</span>
-<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Add the predicted probabilities and confidence intervals to the original data frame</span></span>
-<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>sprout_data<span class="ot">&lt;-</span><span class="fu">cbind</span>(sprout_data,preds)</span>
-<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>sprout_data<span class="sc">$</span>predicted_prob <span class="ot">&lt;-</span> <span class="fu">plogis</span>(sprout_data<span class="sc">$</span>fit)</span>
-<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>sprout_data<span class="sc">$</span>ci_lwr <span class="ot">&lt;-</span> ci_lwr</span>
-<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>sprout_data<span class="sc">$</span>ci_upr <span class="ot">&lt;-</span> ci_upr</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a sequence of seed sizes for prediction</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Predict with 95% confidence interval on the link scale</span></span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a><span class="co"># I will use the same dataframe</span></span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">&lt;-</span> <span class="fu">predict.glm</span>(logistic_model, sprout_data, <span class="at">se.fit =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate the confidence intervals on the link scale</span></span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>ci_lwr <span class="ot">&lt;-</span><span class="fu">with</span>(preds, <span class="fu">plogis</span>(fit <span class="sc">-</span> <span class="fl">1.96</span> <span class="sc">*</span> se.fit))</span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>ci_upr <span class="ot">&lt;-</span><span class="fu">with</span>(preds, <span class="fu">plogis</span>(fit <span class="sc">+</span> <span class="fl">1.96</span> <span class="sc">*</span> se.fit))</span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Add the predicted probabilities and confidence intervals to the original data frame</span></span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>sprout_data<span class="ot">&lt;-</span><span class="fu">cbind</span>(sprout_data,preds)</span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>sprout_data<span class="sc">$</span>predicted_prob <span class="ot">&lt;-</span> <span class="fu">plogis</span>(sprout_data<span class="sc">$</span>fit)</span>
+<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a>sprout_data<span class="sc">$</span>ci_lwr <span class="ot">&lt;-</span> ci_lwr</span>
+<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a>sprout_data<span class="sc">$</span>ci_upr <span class="ot">&lt;-</span> ci_upr</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(sprout_data,<span class="fu">aes</span>(<span class="at">x=</span>seed_size_mm,<span class="at">y=</span>predicted_prob,<span class="at">ymin=</span>ci_lwr,<span class="at">ymax=</span>ci_upr))<span class="sc">+</span></span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>()<span class="sc">+</span></span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y=</span>predicted_prob))<span class="sc">+</span></span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="at">alpha=</span><span class="fl">0.15</span>)<span class="sc">+</span></span>
-<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Seed Size (mm)"</span>)<span class="sc">+</span></span>
-<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Probability of Sprouting"</span>)<span class="sc">+</span></span>
-<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(sprout_data,<span class="fu">aes</span>(<span class="at">x=</span>seed_size_mm,<span class="at">y=</span>predicted_prob,<span class="at">ymin=</span>ci_lwr,<span class="at">ymax=</span>ci_upr))<span class="sc">+</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>()<span class="sc">+</span></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y=</span>predicted_prob))<span class="sc">+</span></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="at">alpha=</span><span class="fl">0.15</span>)<span class="sc">+</span></span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Seed Size (mm)"</span>)<span class="sc">+</span></span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Probability of Sprouting"</span>)<span class="sc">+</span></span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>That is it! On Wednesday and Friday we will talk about Poisson!</p>
 </section>
