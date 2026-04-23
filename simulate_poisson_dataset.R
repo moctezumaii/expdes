@@ -1,3 +1,4 @@
+# Fixed seed so the script always reproduces poisson_dataset.csv exactly.
 set.seed(571)
 
 n <- 180
