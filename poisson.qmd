@@ -208,14 +208,14 @@ ggplot(poisson_data, aes(x = sucrose_pct, y = visits)) +
   geom_point(alpha = 0.65, color = "darkgreen") +
   geom_ribbon(
     data = new_data,
-    aes(y = fit, ymin = lwr, ymax = upr),
+    aes(x = sucrose_pct, y = fit, ymin = lwr, ymax = upr),
     inherit.aes = FALSE,
     alpha = 0.2,
     fill = "skyblue3"
   ) +
   geom_line(
     data = new_data,
-    aes(y = fit),
+    aes(x = sucrose_pct, y = fit),
     inherit.aes = FALSE,
     color = "navy",
     linewidth = 1
