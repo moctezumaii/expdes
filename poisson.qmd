@@ -105,7 +105,7 @@ ggplot(poisson_data, aes(x = sucrose_pct, y = log_visits)) +
   theme_classic() +
   labs(
     x = "Sucrose concentration (%)",
-    y = "log(visits + 1)"
+    y = "ln(visits + 1)"
   )
 ```
 
