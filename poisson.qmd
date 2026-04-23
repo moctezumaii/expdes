@@ -132,7 +132,7 @@ abline(h = 0, col = "blue", lty = 2)
 par(mfrow = c(1, 1))
 ```
 
-The log transformation often helps because the relationship looks closer to linear and the spread is more stable. A Poisson GLM also uses a log idea, but it models the mean count with a log link while keeping a Poisson distribution for the response on the original count scale.
+The log transformation often helps because the relationship looks closer to linear and the spread is more stable. A Poisson GLM also uses a log link function, but it models the mean count with that link while keeping a Poisson distribution for the response on the original count scale.
 
 ### 📋 Canvas Question (Section 2)
 
