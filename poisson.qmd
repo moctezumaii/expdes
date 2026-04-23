@@ -16,7 +16,7 @@ For this activity you will need the `car` package and the `ggplot2` package.
 
 ## Overview
 
-This in-class coding activity has four sections. All code is provided: your job is to run the code, look at the output, and answer the discussion questions on Canvas.
+This in-class coding activity has four sections: the wrong model, a log transformation, a Poisson GLM, and a short look ahead to next week. All code is provided: your job is to run the code, look at the output, and answer the discussion questions on Canvas.
 
 I will start with a hummingbird feeder dataset. The response variable is the number of feeder visits during a fixed observation period. Run each chunk in order, read the short notes, and then submit your answers on Canvas.
 
