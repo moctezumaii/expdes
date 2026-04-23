@@ -1,0 +1,248 @@
+---
+title: "Poisson Counts, Log Transformations & Intro to Poisson GLMs"
+author: "PLSC/ANSC/SNR 571"
+format: html
+editor: visual
+execute:
+  output: false
+---
+
+```{r setup, include=FALSE}
+library(car)
+library(ggplot2)
+```
+
+For this activity you will need the `car` package and the `ggplot2` package.
+
+## Overview
+
+This in-class coding activity has four sections. All code is provided: your job is to run the code, look at the output, and answer the discussion questions on Canvas.
+
+I will start with a hummingbird feeder dataset. The response variable is the number of feeder visits during a fixed observation period. Run each chunk in order, read the short notes, and then submit your answers on Canvas.
+
+------------------------------------------------------------------------
+
+# Section 1. Load the data and fit the wrong model (~7 min)
+
+I will start simple and only use `sucrose_pct`, which is the strongest continuous predictor in this dataset.
+
+### Load the data
+
+```{r load-data}
+poisson_data <- read.csv("poisson_dataset.csv")
+
+poisson_data$feeder_color <- as.factor(poisson_data$feeder_color)
+poisson_data$site <- as.factor(poisson_data$site)
+
+str(poisson_data)
+summary(poisson_data)
+```
+
+### Fit a linear model to the raw counts
+
+```{r fit-wrong-model}
+wrong_model <- lm(visits ~ sucrose_pct, data = poisson_data)
+summary(wrong_model)
+```
+
+### Residual diagnostics
+
+```{r diagnostics-wrong, fig.width=8, fig.height=4}
+par(mfrow = c(1, 2))
+
+qqnorm(resid(wrong_model), main = "Normal Q-Q Plot (Raw Counts)")
+qqline(resid(wrong_model), col = "red")
+
+plot(
+  fitted(wrong_model), resid(wrong_model),
+  xlab = "Fitted values", ylab = "Residuals",
+  main = "Residuals vs Fitted (Raw Counts)"
+)
+abline(h = 0, col = "red", lty = 2)
+
+par(mfrow = c(1, 1))
+```
+
+Let's also look at the raw relationship with a straight line added.
+
+```{r plot-wrong-model}
+ggplot(poisson_data, aes(x = sucrose_pct, y = visits)) +
+  geom_point(alpha = 0.7, color = "darkgreen") +
+  stat_smooth(method = "lm", formula = y ~ x, se = TRUE, color = "black") +
+  theme_classic() +
+  labs(
+    x = "Sucrose concentration (%)",
+    y = "Hummingbird visits"
+  )
+```
+
+### 📋 Canvas Question (Section 1)
+
+> **In 1-2 sentences: Which linear-model assumptions look violated here, and what do you see in the plots that makes you say that?**
+>
+> *(Submit your answer on Canvas, do not write it here.)*
+
+------------------------------------------------------------------------
+
+## 🛑 Stop Point 1
+
+*Pause here: discussion*
+
+------------------------------------------------------------------------
+
+# Section 2. Log transform and re-check (~8 min)
+
+Because some feeders have zero visits, I will use `log(visits + 1)` instead of `log(visits)`.
+
+### Transform the response and plot the relationship
+
+```{r transform-response}
+poisson_data$log_visits <- log(poisson_data$visits + 1)
+
+ggplot(poisson_data, aes(x = sucrose_pct, y = log_visits)) +
+  geom_point(alpha = 0.7, color = "darkblue") +
+  stat_smooth(method = "lm", formula = y ~ x, se = TRUE, color = "black") +
+  theme_classic() +
+  labs(
+    x = "Sucrose concentration (%)",
+    y = "log(visits + 1)"
+  )
+```
+
+### Fit a linear model to the transformed response
+
+```{r fit-log-lm}
+log_model <- lm(log_visits ~ sucrose_pct, data = poisson_data)
+summary(log_model)
+```
+
+```{r diagnostics-log, fig.width=8, fig.height=4}
+par(mfrow = c(1, 2))
+
+qqnorm(resid(log_model), main = "Normal Q-Q Plot (Log Response)")
+qqline(resid(log_model), col = "blue")
+
+plot(
+  fitted(log_model), resid(log_model),
+  xlab = "Fitted values", ylab = "Residuals",
+  main = "Residuals vs Fitted (Log Response)"
+)
+abline(h = 0, col = "blue", lty = 2)
+
+par(mfrow = c(1, 1))
+```
+
+The log transformation often helps because the relationship looks closer to linear and the spread is more stable. A Poisson GLM also uses a log idea, but it models the mean count with a log link while keeping a Poisson distribution for the response on the original count scale.
+
+### 📋 Canvas Question (Section 2)
+
+> **In 1-2 sentences: What is similar between the transformed `lm()` and a Poisson `glm()`, and what is different about what each model assumes for the response?**
+>
+> *(Submit your answer on Canvas, do not write it here.)*
+
+------------------------------------------------------------------------
+
+## 🛑 Stop Point 2
+
+*Pause here*
+
+------------------------------------------------------------------------
+
+# Section 3. Fit the Poisson GLM (~8 min)
+
+Now I will fit the model that matches the count response.
+
+```{r fit-poisson-glm}
+poisson_model <- glm(
+  visits ~ sucrose_pct,
+  family = poisson(link = "log"),
+  data = poisson_data
+)
+
+summary(poisson_model)
+```
+
+The slope in this model is on the log scale. If `sucrose_pct` increases by one unit, the expected log mean count changes by the slope estimate. On the original scale, the expected mean count is multiplied by `exp(beta1)` for a one-unit increase in sucrose concentration.
+
+### Compare the transformed `lm()` and the Poisson `glm()`
+
+```{r compare-models}
+coef(summary(log_model))
+coef(summary(poisson_model))
+```
+
+### ANOVA
+
+With one predictor, the test is straightforward. I will use Type II here to keep the workflow consistent with the `car` package tools we will use later.
+
+```{r poisson-anova}
+Anova(poisson_model, type = "II")
+```
+
+### 📋 Canvas Question (Section 3)
+
+> **After looking at both summaries, what differences do you notice between the transformed `lm()` and the Poisson `glm()`? Think about the coefficients, standard errors, and how you would interpret fitted values.**
+>
+> *(Submit your answer on Canvas, do not write it here.)*
+
+### Prediction and plotting on the original count scale
+
+```{r poisson-predictions}
+new_data <- data.frame(
+  sucrose_pct = seq(
+    min(poisson_data$sucrose_pct),
+    max(poisson_data$sucrose_pct),
+    length.out = 200
+  )
+)
+
+pred_link <- predict(poisson_model, newdata = new_data, type = "link", se.fit = TRUE)
+
+new_data$fit <- exp(pred_link$fit)
+new_data$lwr <- exp(pred_link$fit - 1.96 * pred_link$se.fit)
+new_data$upr <- exp(pred_link$fit + 1.96 * pred_link$se.fit)
+```
+
+```{r plot-poisson-glm, fig.width=7, fig.height=5}
+ggplot(poisson_data, aes(x = sucrose_pct, y = visits)) +
+  geom_point(alpha = 0.65, color = "darkgreen") +
+  geom_ribbon(
+    data = new_data,
+    aes(y = fit, ymin = lwr, ymax = upr),
+    inherit.aes = FALSE,
+    alpha = 0.2,
+    fill = "skyblue3"
+  ) +
+  geom_line(
+    data = new_data,
+    aes(y = fit),
+    inherit.aes = FALSE,
+    color = "navy",
+    linewidth = 1
+  ) +
+  theme_classic() +
+  labs(
+    x = "Sucrose concentration (%)",
+    y = "Expected hummingbird visits"
+  )
+```
+
+------------------------------------------------------------------------
+
+## 🛑 Stop Point 3
+
+*Pause here: discussion*
+
+------------------------------------------------------------------------
+
+# Section 4. Looking ahead to next week (~5 min)
+
+So far I only used one predictor, but this dataset has more information. Besides `sucrose_pct`, you also have `feeder_height_cm`, `shade_pct`, `feeder_color`, and `site`.
+
+### 📋 Canvas Question (Section 4)
+
+> **If you wanted to explain hummingbird visits more fully, what would you do next? What model would you run, and how could you compare different biological hypotheses or competing models?**
+>
+> *(Submit your answer on Canvas, do not write it here.)*
+
+We will cover multiple predictors and model comparison next week.
