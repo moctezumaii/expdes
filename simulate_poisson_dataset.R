@@ -49,4 +49,10 @@ poisson_data <- data.frame(
   site = site
 )
 
-write.csv(poisson_data, "poisson_dataset.csv", row.names = FALSE)
+csv_connection <- textConnection("csv_lines", "w", local = TRUE)
+write.csv(poisson_data, csv_connection, row.names = FALSE)
+close(csv_connection)
+
+output_connection <- file("poisson_dataset.csv", open = "wb")
+writeChar(paste(csv_lines, collapse = "\n"), output_connection, eos = NULL, useBytes = TRUE)
+close(output_connection)
