@@ -22,7 +22,7 @@ I will start with a hummingbird feeder dataset. The response variable is the num
 
 ------------------------------------------------------------------------
 
-# Section 1. Load the data and fit the wrong model (~7 min)
+# Section 1. Load the data and fit the wrong model (\~7 min)
 
 I will start simple and only use `sucrose_pct`, which is the strongest continuous predictor in this dataset.
 
@@ -48,7 +48,6 @@ summary(wrong_model)
 ### Residual diagnostics
 
 ```{r diagnostics-wrong, fig.width=8, fig.height=4}
-par(mfrow = c(1, 2))
 
 qqnorm(resid(wrong_model), main = "Normal Q-Q Plot (Raw Counts)")
 qqline(resid(wrong_model), col = "red")
@@ -60,7 +59,7 @@ plot(
 )
 abline(h = 0, col = "red", lty = 2)
 
-par(mfrow = c(1, 1))
+
 ```
 
 Let's also look at the raw relationship with a straight line added.
@@ -81,6 +80,8 @@ ggplot(poisson_data, aes(x = sucrose_pct, y = visits)) +
 > **In 1-2 sentences: Which linear-model assumptions look violated here, and what do you see in the plots that makes you say that?**
 >
 > *(Submit your answer on Canvas, do not write it here.)*
+>
+> **What is the model we run? What is the response variable and what is the explanatory variable?**
 
 ------------------------------------------------------------------------
 
@@ -90,9 +91,9 @@ ggplot(poisson_data, aes(x = sucrose_pct, y = visits)) +
 
 ------------------------------------------------------------------------
 
-# Section 2. Log transform and re-check (~8 min)
+# Section 2. Log transform and re-check (\~8 min)
 
-Because some feeders have zero visits, I will use `log(visits + 1)` instead of `log(visits)`.
+Because some feeders have zero visits, we will use `log(visits + 1)` instead of `log(visits)`.
 
 ### Transform the response and plot the relationship
 
@@ -148,7 +149,7 @@ The log transformation often helps because the relationship looks closer to line
 
 ------------------------------------------------------------------------
 
-# Section 3. Fit the Poisson GLM (~8 min)
+# Section 3. Fit the Poisson GLM (\~8 min)
 
 Now I will fit the model that matches the count response.
 
@@ -235,7 +236,7 @@ ggplot(poisson_data, aes(x = sucrose_pct, y = visits)) +
 
 ------------------------------------------------------------------------
 
-# Section 4. Looking ahead to next week (~5 min)
+# Section 4. Looking ahead to next week (\~5 min)
 
 So far I only used one predictor, but this dataset has more information. Besides `sucrose_pct`, you also have `feeder_height_cm`, `shade_pct`, `feeder_color`, and `site`.
 
@@ -246,3 +247,5 @@ So far I only used one predictor, but this dataset has more information. Besides
 > *(Submit your answer on Canvas, do not write it here.)*
 
 We will cover multiple predictors and model comparison next week.
+
+For now, run one more model but use one predictor **in addition** to sucrose
