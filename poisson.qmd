@@ -28,7 +28,7 @@ I will start simple and only use `sucrose_pct`, which is the strongest continuou
 
 ### Load the data
 
-```{r load-data}
+```{r load-data, output =TRUE}
 poisson_data <- read.csv("poisson_dataset.csv")
 
 poisson_data$feeder_color <- as.factor(poisson_data$feeder_color)
@@ -40,14 +40,14 @@ summary(poisson_data)
 
 ### Fit a linear model to the raw counts
 
-```{r fit-wrong-model}
+```{r fit-wrong-model, output =TRUE}
 wrong_model <- lm(visits ~ sucrose_pct, data = poisson_data)
 summary(wrong_model)
 ```
 
 ### Residual diagnostics
 
-```{r diagnostics-wrong, fig.width=8, fig.height=4}
+```{r diagnostics-wrong, fig.width=8, fig.height=4, output =TRUE}
 
 qqnorm(resid(wrong_model), main = "Normal Q-Q Plot (Raw Counts)")
 qqline(resid(wrong_model), col = "red")
@@ -64,7 +64,7 @@ abline(h = 0, col = "red", lty = 2)
 
 Let's also look at the raw relationship with a straight line added.
 
-```{r plot-wrong-model}
+```{r plot-wrong-model, output =TRUE}
 ggplot(poisson_data, aes(x = sucrose_pct, y = visits)) +
   geom_point(alpha = 0.7, color = "darkgreen") +
   stat_smooth(method = "lm", formula = y ~ x, se = TRUE, color = "black") +
@@ -97,7 +97,7 @@ Because some feeders have zero visits, we will use `log(visits + 1)` instead of 
 
 ### Transform the response and plot the relationship
 
-```{r transform-response}
+```{r transform-response, output =TRUE}
 poisson_data$log_visits <- log(poisson_data$visits + 1)
 
 ggplot(poisson_data, aes(x = sucrose_pct, y = log_visits)) +
@@ -112,12 +112,12 @@ ggplot(poisson_data, aes(x = sucrose_pct, y = log_visits)) +
 
 ### Fit a linear model to the transformed response
 
-```{r fit-log-lm}
+```{r fit-log-lm, output =TRUE}
 log_model <- lm(log_visits ~ sucrose_pct, data = poisson_data)
 summary(log_model)
 ```
 
-```{r diagnostics-log, fig.width=8, fig.height=4}
+```{r diagnostics-log, fig.width=8, fig.height=4, output =TRUE}
 par(mfrow = c(1, 2))
 
 qqnorm(resid(log_model), main = "Normal Q-Q Plot (Log Response)")
@@ -153,7 +153,7 @@ The log transformation often helps because the relationship looks closer to line
 
 Now I will fit the model that matches the count response.
 
-```{r fit-poisson-glm}
+```{r fit-poisson-glm, output =TRUE}
 poisson_model <- glm(
   visits ~ sucrose_pct,
   family = poisson(link = "log"),
@@ -167,20 +167,35 @@ The slope in this model is on the log scale. If `sucrose_pct` increases by one u
 
 ### Compare the transformed `lm()` and the Poisson `glm()`
 
-```{r compare-models}
+```{r compare-models, output =TRUE}
 coef(summary(log_model))
 coef(summary(poisson_model))
+```
+
+### 📋 Canvas Question (Section 3a) — Inference scale vs. prediction scale
+
+> **The coefficient for `sucrose_pct` in the Poisson GLM is on the log scale. What does that number tell you biologically? Now exponentiate it with `exp()`. What does the exponentiated value represent, and why do we back-transform for predictions but report and test the coefficient on the log scale?**
+>
+> *Hint: think about where the normal approximation and the standard errors live, and where the interpretation is most natural for a reader.*
+>
+> *(Submit your answer on Canvas, do not write it here.)*
+
+```{r exp-coefficient}
+# Exponentiate the slope to get the multiplicative effect on the count scale
+exp(coef(poisson_model)["sucrose_pct"])
 ```
 
 ### ANOVA
 
 With one predictor, the test is straightforward. I will use Type II here to keep the workflow consistent with the `car` package tools we will use later.
 
-```{r poisson-anova}
+```{r poisson-anova, output =TRUE}
 Anova(poisson_model, type = "II")
 ```
 
-### 📋 Canvas Question (Section 3)
+IMPORTANT: ANOVA IS ON THE LOG SCALE! The test is for whether the slope on the log scale is significantly different from zero. 
+
+### 📋 Canvas Question (Section 3b)
 
 > **After looking at both summaries, what differences do you notice between the transformed `lm()` and the Poisson `glm()`? Think about the coefficients, standard errors, and how you would interpret fitted values.**
 >
@@ -249,3 +264,214 @@ So far I only used one predictor, but this dataset has more information. Besides
 We will cover multiple predictors and model comparison next week.
 
 For now, run one more model but use one predictor **in addition** to sucrose
+
+
+------------------------------------------------------------------------
+
+# Section 5. Exploring other predictors (\~12 min)
+
+In this section you will fit three more Poisson GLMs — one with a different continuous predictor, one with a categorical predictor, and one that combines sucrose with a categorical predictor. All the code is provided. Where you see `# PLACEHOLDER`, swap in the variable name of your choice.
+
+------------------------------------------------------------------------
+
+## 5a. A second continuous predictor
+
+Choose one of the remaining continuous predictors: `feeder_height_cm` or `shade_pct`. Replace `YOUR_VARIABLE` with your choice throughout this chunk.
+
+```{r fit-continuous-alt, eval = FALSE}
+# PLACEHOLDER — replace YOUR_VARIABLE with feeder_height_cm or shade_pct
+cont_model <- glm(
+  visits ~ YOUR_VARIABLE,
+  family = poisson(link = "log"),
+  data = poisson_data
+)
+
+summary(cont_model)
+Anova(cont_model, type = "II")
+```
+
+```{r predict-continuous-alt, eval = FALSE}
+# PLACEHOLDER — replace YOUR_VARIABLE in both the data.frame() call and the
+# min()/max() call below
+new_data_cont <- data.frame(
+  YOUR_VARIABLE = seq(
+    min(poisson_data$YOUR_VARIABLE),
+    max(poisson_data$YOUR_VARIABLE),
+    length.out = 200
+  )
+)
+
+pred_cont <- predict(cont_model, newdata = new_data_cont, type = "link", se.fit = TRUE)
+
+new_data_cont$fit <- exp(pred_cont$fit)
+new_data_cont$lwr <- exp(pred_cont$fit - 1.96 * pred_cont$se.fit)
+new_data_cont$upr <- exp(pred_cont$fit + 1.96 * pred_cont$se.fit)
+```
+
+```{r plot-continuous-alt, fig.width=7, fig.height=5, eval = FALSE}
+# PLACEHOLDER — replace YOUR_VARIABLE in both aes() calls and in the x label
+ggplot(poisson_data, aes(x = YOUR_VARIABLE, y = visits)) +
+  geom_point(alpha = 0.65, color = "darkgreen") +
+  geom_ribbon(
+    data = new_data_cont,
+    aes(x = YOUR_VARIABLE, y = fit, ymin = lwr, ymax = upr),
+    inherit.aes = FALSE,
+    alpha = 0.2,
+    fill = "skyblue3"
+  ) +
+  geom_line(
+    data = new_data_cont,
+    aes(x = YOUR_VARIABLE, y = fit),
+    inherit.aes = FALSE,
+    color = "navy",
+    linewidth = 1
+  ) +
+  theme_classic() +
+  labs(
+    x = "YOUR AXIS LABEL",          # PLACEHOLDER — write a readable axis label
+    y = "Expected hummingbird visits"
+  )
+```
+
+------------------------------------------------------------------------
+
+## 5b. A categorical predictor
+
+Now fit a model with `feeder_color` as the only predictor. Because this is a factor, the fitted values are one point per level. We will plot those as points with 95 % confidence intervals, still on the original count scale.
+
+```{r fit-categorical}
+cat_model <- glm(
+  visits ~ feeder_color,
+  family = poisson(link = "log"),
+  data = poisson_data
+)
+
+summary(cat_model)
+Anova(cat_model, type = "II")
+```
+
+```{r predict-categorical}
+new_data_cat <- data.frame(
+  feeder_color = levels(poisson_data$feeder_color)
+)
+
+pred_cat <- predict(cat_model, newdata = new_data_cat, type = "link", se.fit = TRUE)
+
+new_data_cat$fit <- exp(pred_cat$fit)
+new_data_cat$lwr <- exp(pred_cat$fit - 1.96 * pred_cat$se.fit)
+new_data_cat$upr <- exp(pred_cat$fit + 1.96 * pred_cat$se.fit)
+```
+
+```{r plot-categorical, fig.width=6, fig.height=4}
+ggplot(new_data_cat, aes(x = feeder_color, y = fit)) +
+  geom_point(size = 3, color = "darkgreen") +
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.15) +
+  theme_classic() +
+  labs(
+    x = "Feeder color",
+    y = "Expected hummingbird visits"
+  )
+```
+
+------------------------------------------------------------------------
+
+## 5c. Sucrose + feeder color
+
+Now add `feeder_color` to the original sucrose model. The plot uses `color = feeder_color` in `aes()` so each color level gets its own predicted line.
+
+```{r fit-combo}
+combo_model <- glm(
+  visits ~ sucrose_pct + feeder_color,
+  family = poisson(link = "log"),
+  data = poisson_data
+)
+
+summary(combo_model)
+Anova(combo_model, type = "II")
+```
+
+```{r predict-combo}
+new_data_combo <- expand.grid(
+  sucrose_pct  = seq(
+    min(poisson_data$sucrose_pct),
+    max(poisson_data$sucrose_pct),
+    length.out = 200
+  ),
+  feeder_color = levels(poisson_data$feeder_color)
+)
+
+pred_combo <- predict(combo_model, newdata = new_data_combo, type = "link", se.fit = TRUE)
+
+new_data_combo$fit <- exp(pred_combo$fit)
+new_data_combo$lwr <- exp(pred_combo$fit - 1.96 * pred_combo$se.fit)
+new_data_combo$upr <- exp(pred_combo$fit + 1.96 * pred_combo$se.fit)
+```
+
+```{r plot-combo, fig.width=8, fig.height=5}
+ggplot(poisson_data, aes(x = sucrose_pct, y = visits, color = feeder_color)) +
+  geom_point(alpha = 0.65) +
+  geom_ribbon(
+    data = new_data_combo,
+    aes(
+      x    = sucrose_pct,
+      y    = fit,
+      ymin = lwr,
+      ymax = upr,
+      fill = feeder_color
+    ),
+    inherit.aes = FALSE,
+    alpha = 0.15
+  ) +
+  geom_line(
+    data = new_data_combo,
+    aes(x = sucrose_pct, y = fit, color = feeder_color),
+    inherit.aes = FALSE,
+    linewidth = 1
+  ) +
+  theme_classic() +
+  labs(
+    x     = "Sucrose concentration (%)",
+    y     = "Expected hummingbird visits",
+    color = "Feeder color",
+    fill  = "Feeder color"
+  )
+```
+
+------------------------------------------------------------------------
+
+## 🛑 Stop Point 5
+
+*Pause here: discussion*
+
+------------------------------------------------------------------------
+
+## 5d. Inference vs. prediction — which model do you choose?
+
+You now have several fitted models. The right choice depends on **why** you are modeling.
+
+When the goal is **inference**: understanding which variables matter and making biological claims — you want a model that is supported by the data and grounded in theory. You test whether each predictor improves fit and report the coefficients (on the log scale) along with their uncertainty. Adding a variable just because it reduces residuals is a problem: you risk over-interpreting noise.
+
+When the goal is **prediction**: getting the best expected count for a new feeder —> you may be willing to accept a more complex model if it genuinely reduces prediction error. Criteria like AIC reward models that explain more variance without over-fitting.
+
+Run the AIC comparison below and look at the numbers.
+
+AIC is a way to compare models that balances fit and complexity. The model with the lowest AIC is the best supported by the data, but you should also consider whether it makes biological sense and whether it is overfitting noise.
+
+Lower AIC means better support, but the difference in AIC between models is what matters. A common rule of thumb is that a difference of 2 or more suggests that the model with the lower AIC is meaningfully better.
+
+```{r aic-comparison, eval = FALSE}
+AIC(poisson_model,   # sucrose only
+    cont_model,      # your chosen continuous predictor only
+    cat_model,       # feeder_color only
+    combo_model)     # sucrose + feeder_color
+```
+
+### 📋 Canvas Question (Section 5)
+
+> **Look at the AIC table and the ANOVA output from the models above.**
+>
+> -   **If your goal is inference: which model would you report, and why? What biological claim can you make from it?**
+>
+> -   **If your goal is prediction: does the model with the lowest AIC make biological sense, or could it just be fitting noise? What would you want to check before using it to predict visits at a new feeder?**
+>
+> *(Submit your answer on Canvas, do not write it here.)*

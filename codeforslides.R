@@ -1,3 +1,4 @@
+library(ggplot2)
 x <- seq(from = 0, to = 2000, by = 0.1)
 x2 <- runif(n = 50, 0, 2000)
 line_df <- data.frame(x = x,
@@ -545,3 +546,119 @@ write.csv(welldata,"welldata.csv",row.names = F)
 
 
 
+
+
+
+# For a class in which I am reviewing distributions
+#I will show plots of normal, poisson, and binomila distributions
+# For normal, I will show 6 distributions.
+# I will start with plotting 3 normal distributions with diffferent means and same variance, then I will plot 3 normal distributions with same mean and different variances. I will use the same color scheme as in the rest of the slides, with blue for the normal distribution, and red for the poisson and binomial distributions.
+
+x <- seq(from = -10, to = 10, by = 0.1)
+norm1 <- data.frame(x = x, y = dnorm(x, mean = 0, sd = 1))
+norm2 <- data.frame(x = x, y = dnorm(x, mean = 2, sd = 1))
+norm3 <- data.frame(x = x, y = dnorm(x, mean = -2, sd = 1))
+
+# I now have my 3 normal distributions with different means and same variance. I will now plot them using ggplot2.
+# Each distribution should have a different color
+# I will use the color to label them with their parameters (mean and variance)
+# The legend should be on the right and be legible for a powerpoint presentation
+
+# combine and label the three normals, then map colour to the label
+norm1$label <- "mean=0, sd=1"
+norm2$label <- "mean=2, sd=1"
+norm3$label <- "mean=-2, sd=1"
+df_norm <- rbind(norm1, norm2, norm3)
+
+ggplot(df_norm, aes(x = x, y = y, color = label)) +
+  geom_line(linewidth = 1.5) +
+  scale_x_continuous("x") +
+  scale_y_continuous("Density") +
+  labs(subtitle = "Normal distributions with different means and same variance",
+       color = "Parameters") +
+  scale_color_manual(values = c(
+    "mean=0, sd=1"  = "#446E9B",
+    "mean=2, sd=1"  = "#D47500",
+    "mean=-2, sd=1" = "#3CB521"
+  )) +
+  theme_classic() +
+  theme(legend.text = element_text(size = 16))
+
+# I wil ldo the same exact thing, but mean will be the same and variance will be different. I will use the same color scheme, but I will change the labels to reflect the parameters of each distribution.
+norm4 <- data.frame(x = x, y = dnorm(x, mean = 0, sd = 0.5))
+norm5 <- data.frame(x = x, y = dnorm(x, mean = 0, sd = 2))
+norm6 <- data.frame(x = x, y = dnorm(x, mean = 0, sd = 3))
+
+norm4$label <- "mean=0, sd=0.5"
+norm5$label <- "mean=0, sd=2"
+norm6$label <- "mean=0, sd=3"
+
+df_norm2 <- rbind(norm4, norm5, norm6)
+
+ggplot(df_norm2, aes(x = x, y = y, color = label)) +
+  geom_line(linewidth = 1.5) +
+  scale_x_continuous("x") +
+  scale_y_continuous("Density") +
+  labs(subtitle = "Normal distributions with same mean and different variances",
+       color = "Parameters") +
+  scale_color_manual(values = c(
+    "mean=0, sd=0.5" = "#446E9B",
+    "mean=0, sd=2"   = "#D47500",
+    "mean=0, sd=3"   = "#3CB521"
+  )) +
+  theme_classic() +
+  theme(legend.text = element_text(size = 16))
+
+# Now I will do a binmial one. 100 trials, and 3 distributions with 0.25, 0.5, and 0.75 probability of success. I will use the same color scheme and labeling as before.
+x_binom <- 0:100
+binom1 <- data.frame(x = x_binom, y = dbinom(x_binom, size = 100, prob = 0.25))
+binom2 <- data.frame(x = x_binom, y = dbinom(x_binom, size = 100, prob = 0.5))
+binom3 <- data.frame(x = x_binom, y = dbinom(x_binom, size = 100, prob = 0.75))
+
+binom1$label <- "size=100, prob=0.25"
+binom2$label <- "size=100, prob=0.5"
+binom3$label <- "size=100, prob=0.75"
+df_binom <- rbind(binom1, binom2, binom3)
+
+# This plot should be different, because it is discrete. I can use a barplot instead of a line plot. I will also change the x-axis to be the number of successes, and the y-axis to be the probability of that number of successes.
+# I should add some transparency to the bars, and I should also add a legend that shows the parameters of each distribution.
+ggplot(df_binom, aes(x = x, y = y, fill = label)) +
+  geom_bar(stat = "identity", position = "dodge", alpha = 0.75) +
+  scale_x_continuous("Number of successes") +
+  scale_y_continuous("Probability") +
+  labs(subtitle = "Binomial distributions with different probabilities of success",
+       fill = "Parameters") +
+  scale_fill_manual(values = c(
+    "size=100, prob=0.25" = "#446E9B",
+    "size=100, prob=0.5"   = "#D47500",
+    "size=100, prob=0.75"  = "#3CB521"
+  )) +
+  theme_classic() +
+  theme(legend.text = element_text(size = 16))
+
+
+# Finally, something similar with poisson, with lambda = 5, 10, and 15. I will use the same color scheme and labeling as before.
+x_pois <- 0:30
+pois1 <- data.frame(x = x_pois, y = dpois(x_pois, lambda = 5))
+pois2 <- data.frame(x = x_pois, y = dpois(x_pois, lambda = 10))
+pois3 <- data.frame(x = x_pois, y = dpois(x_pois, lambda = 15))
+pois1$label <- "lambda=5"
+pois2$label <- "lambda=10"
+pois3$label <- "lambda=15"
+df_pois <- rbind(pois1, pois2, pois3)
+# This plot should also be a barplot, because it is discrete. I will also change the x-axis to be the number of events, and the y-axis to be the probability of that number of events.
+# I should add some transparency to the bars, and I should also add a legend that shows
+
+ggplot(df_pois, aes(x = x, y = y, fill = label)) +
+  geom_bar(stat = "identity", position = "dodge", alpha = 0.75) +
+  scale_x_continuous("Number of events") +
+  scale_y_continuous("Probability") +
+  labs(subtitle = "Poisson distributions with different lambda values",
+       fill = "Parameters") +
+  scale_fill_manual(values = c(
+    "lambda=5"  = "#446E9B",
+    "lambda=10" = "#D47500",
+    "lambda=15" = "#3CB521"
+  )) +
+  theme_classic() +
+  theme(legend.text = element_text(size = 16))
