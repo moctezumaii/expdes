@@ -193,7 +193,7 @@ With one predictor, the test is straightforward. I will use Type II here to keep
 Anova(poisson_model, type = "II")
 ```
 
-IMPORTANT: ANOVA IS ON THE LOG SCALE! The test is for whether the slope on the log scale is significantly different from zero. 
+IMPORTANT: ANOVA IS ON THE LOG SCALE! The test is for whether the slope on the log scale is significantly different from zero.
 
 ### 📋 Canvas Question (Section 3b)
 
@@ -264,7 +264,6 @@ So far I only used one predictor, but this dataset has more information. Besides
 We will cover multiple predictors and model comparison next week.
 
 For now, run one more model but use one predictor **in addition** to sucrose
-
 
 ------------------------------------------------------------------------
 
@@ -449,9 +448,9 @@ ggplot(poisson_data, aes(x = sucrose_pct, y = visits, color = feeder_color)) +
 
 You now have several fitted models. The right choice depends on **why** you are modeling.
 
-When the goal is **inference**: understanding which variables matter and making biological claims — you want a model that is supported by the data and grounded in theory. You test whether each predictor improves fit and report the coefficients (on the log scale) along with their uncertainty. Adding a variable just because it reduces residuals is a problem: you risk over-interpreting noise.
+When the goal is **inference**: understanding which variables matter and making biological claims; you want a model that is supported by the data and grounded in theory. You test whether each predictor improves fit and report the coefficients (on the log scale) along with their uncertainty. Adding a variable just because it reduces residuals is a problem: you risk over-interpreting noise.
 
-When the goal is **prediction**: getting the best expected count for a new feeder —> you may be willing to accept a more complex model if it genuinely reduces prediction error. Criteria like AIC reward models that explain more variance without over-fitting.
+When the goal is **prediction**: getting the best expected count for a new feeder; you may be willing to accept a more complex model if it genuinely reduces prediction error. Criteria like AIC reward models that explain more variance without over-fitting.
 
 Run the AIC comparison below and look at the numbers.
 
