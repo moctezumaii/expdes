@@ -59,6 +59,12 @@ plot(
 )
 abline(h = 0, col = "red", lty = 2)
 
+# loess smooth of mean residual ~ fitted
+fv <- fitted(wrong_model)
+rv <- resid(wrong_model)
+sm <- loess(rv ~ fv)
+newx <- seq(min(fv, na.rm = TRUE), max(fv, na.rm = TRUE), length.out = 200)
+lines(newx, predict(sm, newdata = newx), col = "red", lwd = 2)
 
 ```
 
@@ -129,6 +135,10 @@ plot(
   main = "Residuals vs Fitted (Log Response)"
 )
 abline(h = 0, col = "blue", lty = 2)
+
+
+legend("topright", legend = c("Zero", "Estimated mean"), col = c("blue", "red"),
+       lty = c(2,1), lwd = c(1,2), bty = "n")
 
 par(mfrow = c(1, 1))
 ```
@@ -474,3 +484,8 @@ AIC(poisson_model,   # sucrose only
 > -   **If your goal is prediction: does the model with the lowest AIC make biological sense, or could it just be fitting noise? What would you want to check before using it to predict visits at a new feeder?**
 >
 > *(Submit your answer on Canvas, do not write it here.)*
+
+### Final section
+Now, make one more model, with any predictors that you think are important. Look at the summary and ANOVA, and try to plot this model in a way that makes sense for the predictors you included. You can use the code above as a template, but you will need to modify it based on your chosen predictors.
+
+This can be a bit challenging depending on the predictors you choose, so just do your best to make a plot that shows the relationship between the response and the predictors in a clear way. I won't ask you to submit this plot, but, if you are in the classroom, show it to me, if you are remote, post it in the Canvas discussion I will create for this activity.
