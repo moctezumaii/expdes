@@ -1,0 +1,432 @@
+---
+title: "Polynomial Models: Wrong Fits, Diagnostics, and Model Comparison"
+author: "PLSC/ANSC/SNR 571"
+format: html
+editor: visual
+execute:
+  output: false
+---
+
+```{r setup, include=FALSE}
+library(car)
+library(ggplot2)
+library(AICcmodavg)
+```
+
+For this activity you will need the `car` package, the `ggplot2` package, and the `AICcmodavg` package.
+
+## Overview
+
+This in-class coding activity has four sections: a wrong linear model for a plant dataset, a quadratic correction, a simple Poisson model for count data, and a polynomial Poisson comparison.
+
+Most of the code is provided. Your job is to run the chunks in order, look at the output, and answer the discussion questions on Canvas.
+
+I want you to pay attention to one big idea all day: a model can still be linear in the coefficients even when it contains polynomial terms like `x`, `I(x^2)`, and `I(x^3)`.
+
+------------------------------------------------------------------------
+
+# Section 1. Plant biomass: fit the wrong model first (\~10 min)
+
+I will start with a greenhouse dataset. Plants were grown under different fertilizer rates, and the response variable is aboveground biomass in grams.
+
+The biology suggests that more fertilizer should help at first, but not forever. Still, I want to start with the wrong model on purpose.
+
+### Load the data
+
+```{r load-biomass-data, output =TRUE}
+plant_data <- read.csv("fertilizer_biomass_quadratic.csv")
+
+str(plant_data)
+summary(plant_data)
+```
+
+### Fit a linear model to the raw relationship
+
+```{r fit-biomass-linear, output =TRUE}
+biomass_linear <- lm(biomass_g ~ fertilizer_g_m2, data = plant_data)
+summary(biomass_linear)
+```
+
+### Residual diagnostics
+
+```{r diagnostics-biomass-linear, fig.width=8, fig.height=4, output =TRUE}
+par(mfrow = c(1, 2))
+
+qqnorm(resid(biomass_linear), main = "Normal Q-Q Plot (Linear Biomass Model)")
+qqline(resid(biomass_linear), col = "red")
+
+plot(
+  fitted(biomass_linear), resid(biomass_linear),
+  xlab = "Fitted values", ylab = "Residuals",
+  main = "Residuals vs Fitted (Linear Biomass Model)"
+)
+abline(h = mean(resid(biomass_linear)), col = "red", lty = 2)
+
+fv <- fitted(biomass_linear)
+rv <- resid(biomass_linear)
+sm <- loess(rv ~ fv)
+newx <- seq(min(fv), max(fv), length.out = 200)
+lines(newx, predict(sm, newdata = newx), col = "blue", lwd = 2)
+
+legend(
+  "topright",
+  legend = c("Residual mean", "Loess smooth"),
+  col = c("red", "blue"),
+  lty = c(2, 1),
+  lwd = c(1, 2),
+  bty = "n"
+)
+
+par(mfrow = c(1, 1))
+```
+
+### Plot the raw relationship with the wrong fit
+
+```{r plot-biomass-linear, fig.width=7, fig.height=5, output =TRUE}
+ggplot(plant_data, aes(x = fertilizer_g_m2, y = biomass_g)) +
+  geom_point(alpha = 0.75, color = "darkgreen") +
+  stat_smooth(method = "lm", formula = y ~ x, se = TRUE, color = "black") +
+  theme_classic() +
+  labs(
+    x = "Fertilizer rate (g/m2)",
+    y = "Plant biomass (g)"
+  )
+```
+
+### 📋 Canvas Question (Section 1)
+
+> **In 1-2 sentences: What do the residuals-vs-fitted plot and the model plot suggest about the linearity assumption? What pattern tells you the linear model is wrong?**
+>
+> *(Submit your answer on Canvas, do not write it here.)*
+
+------------------------------------------------------------------------
+
+## 🛑 Stop Point 1
+
+*Pause here: discussion*
+
+------------------------------------------------------------------------
+
+# Section 2. Fit the quadratic model and compare models (\~15 min)
+
+Now I will fit the model that matches the biological story more closely.
+
+### Fit a quadratic model
+
+```{r fit-biomass-quadratic, output =TRUE}
+biomass_quadratic <- lm(
+  biomass_g ~ fertilizer_g_m2 + I(fertilizer_g_m2^2),
+  data = plant_data
+)
+summary(biomass_quadratic)
+```
+
+### Re-check diagnostics
+
+```{r diagnostics-biomass-quadratic, fig.width=8, fig.height=4, output =TRUE}
+par(mfrow = c(1, 2))
+
+qqnorm(resid(biomass_quadratic), main = "Normal Q-Q Plot (Quadratic Biomass Model)")
+qqline(resid(biomass_quadratic), col = "blue")
+
+plot(
+  fitted(biomass_quadratic), resid(biomass_quadratic),
+  xlab = "Fitted values", ylab = "Residuals",
+  main = "Residuals vs Fitted (Quadratic Biomass Model)"
+)
+abline(h = mean(resid(biomass_quadratic)), col = "blue", lty = 2)
+
+fv2 <- fitted(biomass_quadratic)
+rv2 <- resid(biomass_quadratic)
+sm2 <- loess(rv2 ~ fv2)
+newx2 <- seq(min(fv2), max(fv2), length.out = 200)
+lines(newx2, predict(sm2, newdata = newx2), col = "darkgreen", lwd = 2)
+
+legend(
+  "topright",
+  legend = c("Residual mean", "Loess smooth"),
+  col = c("blue", "darkgreen"),
+  lty = c(2, 1),
+  lwd = c(1, 2),
+  bty = "n"
+)
+
+par(mfrow = c(1, 1))
+```
+
+### Compare the linear fit and the quadratic fit
+
+```{r plot-biomass-both, fig.width=7, fig.height=5}
+new_biomass <- data.frame(
+  fertilizer_g_m2 = seq(
+    min(plant_data$fertilizer_g_m2),
+    max(plant_data$fertilizer_g_m2),
+    length.out = 200
+  )
+)
+
+new_biomass$linear_fit <- predict(biomass_linear, newdata = new_biomass)
+new_biomass$quadratic_fit <- predict(biomass_quadratic, newdata = new_biomass)
+
+ggplot(plant_data, aes(x = fertilizer_g_m2, y = biomass_g)) +
+  geom_point(alpha = 0.7, color = "darkgreen") +
+  geom_line(
+    data = new_biomass,
+    aes(x = fertilizer_g_m2, y = linear_fit, color = "Linear model"),
+    linewidth = 1
+  ) +
+  geom_line(
+    data = new_biomass,
+    aes(x = fertilizer_g_m2, y = quadratic_fit, color = "Quadratic model"),
+    linewidth = 1
+  ) +
+  scale_color_manual(values = c("Linear model" = "black", "Quadratic model" = "blue")) +
+  theme_classic() +
+  labs(
+    x = "Fertilizer rate (g/m2)",
+    y = "Plant biomass (g)",
+    color = "Model"
+  )
+```
+
+::: callout-note
+## AIC vs AICc
+
+AIC is the original information criterion and is most comfortable in large samples.
+
+AICc is a corrected version of AIC that adds a small-sample penalty when the sample size is not very large relative to the number of parameters.
+
+As sample size gets larger, AICc gets closer and closer to AIC.
+
+A simple rule of thumb is this: if your dataset is modest in size, or if you are not sure, prefer AICc. In practice I usually use AICc for classroom datasets like this one.
+:::
+
+### Model comparison with `AICcmodavg`
+
+First I will ask for an AIC table. Setting `second.ord = FALSE` tells `aictab()` to report AIC instead of AICc.
+
+```{r biomass-aic, output =TRUE}
+aictab(
+  cand.set = list(linear = biomass_linear, quadratic = biomass_quadratic),
+  second.ord = FALSE
+)
+```
+
+Now I will run the default corrected table, which reports AICc.
+
+```{r biomass-aicc, output =TRUE}
+aictab(
+  cand.set = list(linear = biomass_linear, quadratic = biomass_quadratic)
+)
+```
+
+### 📋 Canvas Question (Section 2)
+
+> **After fitting the quadratic model, what changed in the residual pattern? Which model is better supported by the information-criterion tables, and why?**
+>
+> *(Submit your answer on Canvas, do not write it here.)*
+
+------------------------------------------------------------------------
+
+## 🛑 Stop Point 2
+
+*Pause here*
+
+------------------------------------------------------------------------
+
+# Section 3. Seedling counts: start with the simple Poisson model (\~10 min)
+
+Now we will switch to count data from an ecology study. Field crews counted oak seedlings across sites with different canopy cover.
+
+I will start with the simplest Poisson GLM even though I already suspect the relationship is more complicated than a straight line on the link scale.
+
+### Load the data
+
+```{r load-seedling-data, output =TRUE}
+seedling_data <- read.csv("seedling_counts_cubic.csv")
+
+str(seedling_data)
+summary(seedling_data)
+```
+
+### Fit a Poisson GLM with only a linear term
+
+```{r fit-seedling-linear, output =TRUE}
+seedling_linear <- glm(
+  oak_seedlings ~ canopy_cover_pct,
+  family = poisson(link = "log"),
+  data = seedling_data
+)
+summary(seedling_linear)
+```
+
+### Plot the simple Poisson fit
+
+```{r plot-seedling-linear, fig.width=7, fig.height=5}
+new_seedlings <- data.frame(
+  canopy_cover_pct = seq(
+    min(seedling_data$canopy_cover_pct),
+    max(seedling_data$canopy_cover_pct),
+    length.out = 200
+  )
+)
+
+pred_linear <- predict(seedling_linear, newdata = new_seedlings, type = "link", se.fit = TRUE)
+new_seedlings$linear_fit <- exp(pred_linear$fit)
+new_seedlings$linear_lwr <- exp(pred_linear$fit - 1.96 * pred_linear$se.fit)
+new_seedlings$linear_upr <- exp(pred_linear$fit + 1.96 * pred_linear$se.fit)
+
+ggplot(seedling_data, aes(x = canopy_cover_pct, y = oak_seedlings)) +
+  geom_point(alpha = 0.7, color = "darkgreen") +
+  geom_ribbon(
+    data = new_seedlings,
+    aes(x = canopy_cover_pct, y = linear_fit, ymin = linear_lwr, ymax = linear_upr),
+    inherit.aes = FALSE,
+    alpha = 0.2,
+    fill = "skyblue3"
+  ) +
+  geom_line(
+    data = new_seedlings,
+    aes(x = canopy_cover_pct, y = linear_fit),
+    inherit.aes = FALSE,
+    color = "navy",
+    linewidth = 1
+  ) +
+  theme_classic() +
+  labs(
+    x = "Canopy cover (%)",
+    y = "Oak seedling count"
+  )
+```
+
+### Pearson residuals for the simple Poisson model
+
+```{r diagnostics-seedling-linear, fig.width=7, fig.height=5, output =TRUE}
+plot(
+  fitted(seedling_linear), resid(seedling_linear, type = "pearson"),
+  xlab = "Fitted values", ylab = "Pearson residuals",
+  main = "Pearson Residuals vs Fitted (Linear Poisson Model)"
+)
+abline(h = mean(resid(seedling_linear, type = "pearson")), col = "red", lty = 2)
+
+fv3 <- fitted(seedling_linear)
+rv3 <- resid(seedling_linear, type = "pearson")
+sm3 <- loess(rv3 ~ fv3)
+newx3 <- seq(min(fv3), max(fv3), length.out = 200)
+lines(newx3, predict(sm3, newdata = newx3), col = "blue", lwd = 2)
+```
+
+### 📋 Canvas Question (Section 3)
+
+> **Does the simple Poisson model seem flexible enough here? What do the raw plot and the Pearson residual plot suggest about the shape of the relationship?**
+>
+> *(Submit your answer on Canvas, do not write it here.)*
+
+------------------------------------------------------------------------
+
+## 🛑 Stop Point 3
+
+*Pause here: discussion*
+
+------------------------------------------------------------------------
+
+# Section 4. Add polynomial terms to the Poisson GLM and compare models (\~15 min)
+
+Now I will fit models of increasing complexity and compare them.
+
+```{r fit-seedling-polynomials, output =TRUE}
+seedling_quadratic <- glm(
+  oak_seedlings ~ canopy_cover_pct + I(canopy_cover_pct^2),
+  family = poisson(link = "log"),
+  data = seedling_data
+)
+
+seedling_cubic <- glm(
+  oak_seedlings ~ canopy_cover_pct + I(canopy_cover_pct^2) + I(canopy_cover_pct^3),
+  family = poisson(link = "log"),
+  data = seedling_data
+)
+
+summary(seedling_quadratic)
+summary(seedling_cubic)
+```
+
+### Compare the candidate models with `AICcmodavg`
+
+```{r seedling-aicc, output =TRUE}
+seedling_tab <- aictab(
+  cand.set = list(
+    linear = seedling_linear,
+    quadratic = seedling_quadratic,
+    cubic = seedling_cubic
+  )
+)
+
+seedling_tab
+```
+
+Look carefully at the delta values and the Akaike weights. A delta near 0 means the model is strongly supported relative to the others in the table. The weights can be read like relative support across the candidate set.
+
+### Plot the linear and cubic fits on the original count scale
+
+```{r plot-seedling-both, fig.width=7, fig.height=5}
+pred_cubic <- predict(seedling_cubic, newdata = new_seedlings, type = "link", se.fit = TRUE)
+new_seedlings$cubic_fit <- exp(pred_cubic$fit)
+
+ggplot(seedling_data, aes(x = canopy_cover_pct, y = oak_seedlings)) +
+  geom_point(alpha = 0.7, color = "darkgreen") +
+  geom_line(
+    data = new_seedlings,
+    aes(x = canopy_cover_pct, y = linear_fit, color = "Linear Poisson"),
+    linewidth = 1
+  ) +
+  geom_line(
+    data = new_seedlings,
+    aes(x = canopy_cover_pct, y = cubic_fit, color = "Cubic Poisson"),
+    linewidth = 1
+  ) +
+  scale_color_manual(values = c("Linear Poisson" = "black", "Cubic Poisson" = "blue")) +
+  theme_classic() +
+  labs(
+    x = "Canopy cover (%)",
+    y = "Expected oak seedling count",
+    color = "Model"
+  )
+```
+
+### Check the cubic model residual pattern
+
+```{r diagnostics-seedling-cubic, fig.width=7, fig.height=5, output =TRUE}
+plot(
+  fitted(seedling_cubic), resid(seedling_cubic, type = "pearson"),
+  xlab = "Fitted values", ylab = "Pearson residuals",
+  main = "Pearson Residuals vs Fitted (Cubic Poisson Model)"
+)
+abline(h = mean(resid(seedling_cubic, type = "pearson")), col = "blue", lty = 2)
+
+fv4 <- fitted(seedling_cubic)
+rv4 <- resid(seedling_cubic, type = "pearson")
+sm4 <- loess(rv4 ~ fv4)
+newx4 <- seq(min(fv4), max(fv4), length.out = 200)
+lines(newx4, predict(sm4, newdata = newx4), col = "darkgreen", lwd = 2)
+```
+
+### 📋 Canvas Question (Section 4)
+
+> **Which Poisson model is best supported by the AICc table? Use the delta values and Akaike weights in your answer, and explain what the cubic terms add biologically.**
+>
+> *(Submit your answer on Canvas, do not write it here.)*
+
+------------------------------------------------------------------------
+
+## Final checkpoint
+
+Today you saw the same workflow twice:
+
+1. Fit a model that is too simple.
+2. Diagnose the residual pattern.
+3. Add the polynomial terms the biology suggests.
+4. Re-check the diagnostics.
+5. Compare candidate models with `AICcmodavg`.
+
+That workflow is often more useful than memorizing one "correct" formula.
