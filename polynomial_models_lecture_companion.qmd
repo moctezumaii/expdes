@@ -1,0 +1,245 @@
+---
+title: "Polynomial Models Lecture Companion"
+author: "PLSC/ANSC/SNR 571"
+format: html
+editor: visual
+execute:
+  output: false
+---
+
+## Overview
+
+This is an instructor-facing outline for two 50 minute class meetings that line up with `polynomial_models.qmd` and the datasets `fertilizer_biomass_quadratic.csv` and `seedling_counts_cubic.csv`.
+
+Use this as a live teaching guide. The goal is not to make slides. The goal is to know what to write, what to show, where to pause, and what code to type.
+
+------------------------------------------------------------------------
+
+# Lecture 1. Quadratic structure in a linear model (about 50 min)
+
+## 0 to 8 min. Open with the big idea
+
+- Write: `y = beta0 + beta1 x`
+- Then write: `y = beta0 + beta1 x + beta2 x^2`
+- Say clearly that both models are linear in the coefficients.
+- Ask: what changes when I add `x^2`? What shape can the model now make?
+- Show the raw fertilizer and biomass scatterplot before fitting anything.
+
+## 8 to 18 min. Live code the wrong model first
+
+What to type:
+
+```{r eval=FALSE}
+library(ggplot2)
+plant_data <- read.csv("fertilizer_biomass_quadratic.csv")
+biomass_linear <- lm(biomass_g ~ fertilizer_g_m2, data = plant_data)
+summary(biomass_linear)
+```
+
+What to highlight:
+
+- Identify the response and predictor.
+- Remind students that a significant slope does not guarantee the model shape is correct.
+- Point out that the fitted line is trying to average over curvature.
+
+Concept checks to ask:
+
+- What is the response variable?
+- What is the explanatory variable?
+- If the biology has an optimum, does a straight line make sense across the full range?
+
+## 18 to 30 min. Diagnostics for the wrong model
+
+What to type:
+
+```{r eval=FALSE}
+par(mfrow = c(1, 2))
+qqnorm(resid(biomass_linear))
+qqline(resid(biomass_linear), col = "red")
+plot(fitted(biomass_linear), resid(biomass_linear))
+abline(h = mean(resid(biomass_linear)), col = "red", lty = 2)
+```
+
+What to show:
+
+- The residuals vs fitted plot is the key plot here.
+- Point at the curved pattern and say: the mean structure is wrong.
+- Mention that the residual mean line is near 0, but that does not rescue the model.
+- If time allows, add a loess line and ask students what it is tracking.
+
+Pause and ask:
+
+- Which assumption is the main problem here?
+- If the residuals bend, what does that tell us about the model equation?
+
+## 30 to 40 min. Fit the quadratic model
+
+What to type:
+
+```{r eval=FALSE}
+biomass_quadratic <- lm(
+  biomass_g ~ fertilizer_g_m2 + I(fertilizer_g_m2^2),
+  data = plant_data
+)
+summary(biomass_quadratic)
+```
+
+What to write on the board:
+
+- `E(y) = beta0 + beta1 x + beta2 x^2`
+- If `beta2 < 0`, the curve opens downward.
+- The turning point happens at `-beta1 / (2 * beta2)`.
+
+What to highlight:
+
+- The model is still a linear model.
+- We changed the shape by changing the predictors, not by changing the estimation framework.
+
+## 40 to 50 min. Compare fits and introduce AIC vs AICc
+
+What to type:
+
+```{r eval=FALSE}
+library(AICcmodavg)
+aictab(
+  cand.set = list(linear = biomass_linear, quadratic = biomass_quadratic),
+  second.ord = FALSE
+)
+aictab(
+  cand.set = list(linear = biomass_linear, quadratic = biomass_quadratic)
+)
+```
+
+What to say:
+
+- AIC is the original criterion and is aimed at larger samples.
+- AICc adds a small sample correction.
+- As sample size grows, AICc approaches AIC.
+- Rule of thumb: if you are unsure, prefer AICc.
+
+Concept checks:
+
+- Does the best supported model need the highest R-squared?
+- What does a lower information criterion mean?
+
+------------------------------------------------------------------------
+
+# Lecture 2. Cubic structure in a Poisson GLM (about 50 min)
+
+## 0 to 8 min. Connect back to last class
+
+- Review the five-step workflow from the assignment.
+- Write the Poisson GLM form: `log(lambda) = beta0 + beta1 x`
+- Then extend it: `log(lambda) = beta0 + beta1 x + beta2 x^2 + beta3 x^3`
+- Say that the polynomial is on the link scale.
+
+## 8 to 18 min. Load the count dataset and fit the simple Poisson model
+
+What to type:
+
+```{r eval=FALSE}
+seedling_data <- read.csv("seedling_counts_cubic.csv")
+seedling_linear <- glm(
+  oak_seedlings ~ canopy_cover_pct,
+  family = poisson(link = "log"),
+  data = seedling_data
+)
+summary(seedling_linear)
+```
+
+What to show:
+
+- Raw counts against canopy cover.
+- The fitted mean curve from the simple Poisson model.
+- Remind students that the slope is on the log scale.
+
+Concept checks:
+
+- What is the response variable here?
+- Why is `lm()` not the first choice for these data?
+- If the link is log, what function gets us back to the count scale?
+
+## 18 to 28 min. Diagnose the simple Poisson fit
+
+What to type:
+
+```{r eval=FALSE}
+plot(
+  fitted(seedling_linear),
+  resid(seedling_linear, type = "pearson")
+)
+abline(h = mean(resid(seedling_linear, type = "pearson")), col = "red", lty = 2)
+```
+
+What to highlight:
+
+- Focus on the shape of the residual pattern, not on perfect randomness.
+- If the linear predictor is too simple, the residual smooth should still show structure.
+- Explain why that suggests missing polynomial terms.
+
+Pause and ask:
+
+- What does the residual pattern suggest we should try next?
+- Is this a distribution problem, a mean-structure problem, or both?
+
+## 28 to 40 min. Fit quadratic and cubic Poisson models
+
+What to type:
+
+```{r eval=FALSE}
+seedling_quadratic <- glm(
+  oak_seedlings ~ canopy_cover_pct + I(canopy_cover_pct^2),
+  family = poisson(link = "log"),
+  data = seedling_data
+)
+
+seedling_cubic <- glm(
+  oak_seedlings ~ canopy_cover_pct + I(canopy_cover_pct^2) + I(canopy_cover_pct^3),
+  family = poisson(link = "log"),
+  data = seedling_data
+)
+```
+
+What to write on the board:
+
+- `log(lambda) = beta0 + beta1 x + beta2 x^2 + beta3 x^3`
+- `lambda = exp(beta0 + beta1 x + beta2 x^2 + beta3 x^3)`
+
+What to highlight:
+
+- The cubic model can capture changes in curvature that the linear model cannot.
+- The interpretation of each single coefficient is harder, so plotting predicted values becomes especially important.
+
+## 40 to 50 min. Model comparison and wrap-up
+
+What to type:
+
+```{r eval=FALSE}
+seedling_tab <- aictab(
+  cand.set = list(
+    linear = seedling_linear,
+    quadratic = seedling_quadratic,
+    cubic = seedling_cubic
+  )
+)
+seedling_tab
+```
+
+What to show:
+
+- The delta AICc column.
+- The Akaike weights.
+- A plot with the linear and cubic fitted curves on the count scale.
+
+What to ask:
+
+- Which model is best supported?
+- If the cubic model wins, is that because it is more complex or because it captures a real pattern?
+- How would you explain the pattern biologically in one or two sentences?
+
+## End-of-day take home message
+
+- Polynomial terms change model shape without changing the basic regression framework.
+- Diagnostics tell us when a model is too simple.
+- Information criteria help compare candidate models that represent different biological ideas.
+- For small or moderate classroom datasets, AICc is usually the safer default.
