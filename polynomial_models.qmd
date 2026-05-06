@@ -4,7 +4,7 @@ author: "PLSC/ANSC/SNR 571"
 format: html
 editor: visual
 execute:
-  output: false
+  output: true
 ---
 
 ## Packages needed
@@ -46,14 +46,14 @@ summary(plant_data)
 
 ### Fit a linear model to the raw relationship
 
-```{r fit-biomass-linear, output = FALSE}
+```{r fit-biomass-linear}
 biomass_linear <- lm(biomass_g ~ fertilizer_g_m2, data = plant_data)
 summary(biomass_linear)
 ```
 
 ### Residual diagnostics
 
-```{r diagnostics-biomass-linear, fig.width=8, fig.height=4, output = FALSE}
+```{r diagnostics-biomass-linear, fig.width=8, fig.height=4}
 par(mfrow = c(1, 2))
 
 qqnorm(resid(biomass_linear), main = "Normal Q-Q Plot (Linear Biomass Model)")
@@ -86,7 +86,7 @@ par(mfrow = c(1, 1))
 
 ### Plot the raw relationship with the wrong fit
 
-```{r plot-biomass-linear, fig.width=7, fig.height=5, output = FALSE}
+```{r plot-biomass-linear, fig.width=7, fig.height=5}
 ggplot(plant_data, aes(x = fertilizer_g_m2, y = biomass_g)) +
   geom_point(alpha = 0.75, color = "darkgreen") +
   stat_smooth(method = "lm", formula = y ~ x, se = TRUE, color = "black") +
@@ -117,7 +117,7 @@ Now I will fit the model that matches the biological story more closely.
 
 ### Fit a quadratic model
 
-```{r fit-biomass-quadratic, output = FALSE}
+```{r fit-biomass-quadratic}
 biomass_quadratic <- lm(
   biomass_g ~ fertilizer_g_m2 + I(fertilizer_g_m2^2),
   data = plant_data
@@ -127,8 +127,8 @@ summary(biomass_quadratic)
 
 ### Re-check diagnostics
 
-```{r diagnostics-biomass-quadratic, fig.width=8, fig.height=4, output = FALSE}
-par(mfrow = c(1, 2))
+```{r diagnostics-biomass-quadratic, fig.width=8, fig.height=4}
+par(mfrow = c(1, 1))
 
 qqnorm(resid(biomass_quadratic), main = "Normal Q-Q Plot (Quadratic Biomass Model)")
 qqline(resid(biomass_quadratic), col = "blue")
@@ -160,7 +160,7 @@ par(mfrow = c(1, 1))
 
 ### Compare the linear fit and the quadratic fit
 
-```{r plot-biomass-both, fig.width=7, fig.height=5, output = FALSE}
+```{r plot-biomass-both, fig.width=7, fig.height=5}
 new_biomass <- data.frame(
   fertilizer_g_m2 = seq(
     min(plant_data$fertilizer_g_m2),
@@ -209,7 +209,7 @@ A simple rule of thumb is this: if your dataset is modest in size, or if you are
 
 F `aictab()` reports AICc and orders models from best to worst.
 
-```{r biomass-aicc, output = FALSE}
+```{r biomass-aicc}
 aictab(
   cand.set = list(linear = biomass_linear, quadratic = biomass_quadratic)
 )
@@ -237,7 +237,7 @@ I will start with the simplest Poisson GLM even though I already suspect the rel
 
 ### Load the data
 
-```{r load-seedling-data, output = FALSE}
+```{r load-seedling-data, output = TRUE}
 seedling_data <- read.csv("seedling_counts_cubic.csv")
 
 str(seedling_data)
@@ -246,7 +246,7 @@ summary(seedling_data)
 
 ### Fit a Poisson GLM with only a linear term
 
-```{r fit-seedling-linear, output = FALSE}
+```{r fit-seedling-linear, output = TRUE}
 seedling_linear <- glm(
   oak_seedlings ~ canopy_cover_pct,
   family = poisson(link = "log"),
@@ -257,7 +257,7 @@ summary(seedling_linear)
 
 ### Plot the simple Poisson fit
 
-```{r plot-seedling-linear, fig.width=7, fig.height=5, output = FALSE}
+```{r plot-seedling-linear, fig.width=7, fig.height=5, output = TRUE}
 new_seedlings <- data.frame(
   canopy_cover_pct = seq(
     min(seedling_data$canopy_cover_pct),
@@ -296,7 +296,7 @@ ggplot(seedling_data, aes(x = canopy_cover_pct, y = oak_seedlings)) +
 
 ### Pearson residuals for the simple Poisson model
 
-```{r diagnostics-seedling-linear, fig.width=7, fig.height=5, output = FALSE}
+```{r diagnostics-seedling-linear, fig.width=7, fig.height=5}
 plot(
   fitted(seedling_linear), resid(seedling_linear, type = "pearson"),
   xlab = "Fitted values", ylab = "Pearson residuals",
@@ -329,7 +329,7 @@ lines(newx3, predict(sm3, newdata = newx3), col = "blue", lwd = 2)
 
 Now I will fit models of increasing complexity and compare them.
 
-```{r fit-seedling-polynomials, output = FALSE}
+```{r fit-seedling-polynomials, output = TRUE}
 seedling_quadratic <- glm(
   oak_seedlings ~ canopy_cover_pct + I(canopy_cover_pct^2),
   family = poisson(link = "log"),
@@ -413,4 +413,3 @@ lines(newx4, predict(sm4, newdata = newx4), col = "darkgreen", lwd = 2)
 > *(Submit your answer on Canvas, do not write it here.)*
 
 ------------------------------------------------------------------------
-

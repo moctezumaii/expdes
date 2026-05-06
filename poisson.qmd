@@ -4,7 +4,7 @@ author: "PLSC/ANSC/SNR 571"
 format: html
 editor: visual
 execute:
-  output: false
+  output: true
 ---
 
 ```{r setup, include=FALSE}
@@ -290,7 +290,7 @@ Choose one of the remaining continuous predictors: `feeder_height_cm` or `shade_
 ```{r fit-continuous-alt, eval = FALSE}
 # PLACEHOLDER — replace YOUR_VARIABLE with feeder_height_cm or shade_pct
 cont_model <- glm(
-  visits ~ YOUR_VARIABLE,
+  visits ~ feeder_height_cm,
   family = poisson(link = "log"),
   data = poisson_data
 )
@@ -304,8 +304,8 @@ Anova(cont_model, type = "II")
 # min()/max() call below
 new_data_cont <- data.frame(
   YOUR_VARIABLE = seq(
-    min(poisson_data$YOUR_VARIABLE),
-    max(poisson_data$YOUR_VARIABLE),
+    min(poisson_data$feeder_height_cm),
+    max(poisson_data$feeder_height_cm),
     length.out = 200
   )
 )
@@ -319,25 +319,25 @@ new_data_cont$upr <- exp(pred_cont$fit + 1.96 * pred_cont$se.fit)
 
 ```{r plot-continuous-alt, fig.width=7, fig.height=5, eval = FALSE}
 # PLACEHOLDER — replace YOUR_VARIABLE in both aes() calls and in the x label
-ggplot(poisson_data, aes(x = YOUR_VARIABLE, y = visits)) +
+ggplot(poisson_data, aes(x = feeder_height_cm, y = visits)) +
   geom_point(alpha = 0.65, color = "darkgreen") +
   geom_ribbon(
     data = new_data_cont,
-    aes(x = YOUR_VARIABLE, y = fit, ymin = lwr, ymax = upr),
+    aes(x = feeder_height_cm, y = fit, ymin = lwr, ymax = upr),
     inherit.aes = FALSE,
     alpha = 0.2,
     fill = "skyblue3"
   ) +
   geom_line(
     data = new_data_cont,
-    aes(x = YOUR_VARIABLE, y = fit),
+    aes(x = feeder_height_cm, y = fit),
     inherit.aes = FALSE,
     color = "navy",
     linewidth = 1
   ) +
   theme_classic() +
   labs(
-    x = "YOUR AXIS LABEL",          # PLACEHOLDER — write a readable axis label
+    x = "Feeder height (cm)",          # PLACEHOLDER — write a readable axis label
     y = "Expected hummingbird visits"
   )
 ```
